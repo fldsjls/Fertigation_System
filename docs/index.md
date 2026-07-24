@@ -49,6 +49,7 @@ hide:
 | 判断压力和文丘里 | [工程计算工作表](calculations/engineering-calculator.md) | 所购型号曲线与现场实测表 |
 | 安装并首次通水 | [安装与清水调试](operations/installation-commissioning.md) | [故障诊断](operations/troubleshooting.md) |
 | 设置运行模式 | [A/B 程序与手动阀位](operations/controller-program.md) | 控制器本地计划和两只三通阀位置 |
+| 维护程序和生成文件 | [程序路径与生成流程](reference/program-structure.md) | `package.json` 中的同步、测试和构建命令 |
 
 ## 图片说明
 

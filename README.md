@@ -26,6 +26,7 @@
 | 进行滴灌/喷灌压力、吸液和冲洗计算 | [计算规则](docs/design/hydraulic-calculation.md) · [网页工程计算器](docs/calculations/engineering-calculator.md) |
 | 安装、调试和运行 | [安装与清水调试](docs/operations/installation-commissioning.md) · [A → B → A 程序](docs/operations/controller-program.md) · [故障诊断](docs/operations/troubleshooting.md) |
 | 核对标准和厂家资料 | [资料来源](docs/reference/sources.md) |
+| 维护程序与生成文件 | [程序路径与生成流程](docs/reference/program-structure.md) |
 
 网页工程计算器中的交互功能需要通过下方的 MkDocs 本地文档站运行；直接在 GitHub 中打开 Markdown 只能阅读页面源码。
 

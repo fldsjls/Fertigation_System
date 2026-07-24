@@ -62,6 +62,7 @@ nav:
   - 参考:
       - 接口、牙型与管径清单: reference/interface-schedule.md
       - 资料来源与厂家数据: reference/sources.md
+      - 程序路径与生成流程: reference/program-structure.md
   - ADR:
       - 决策索引: adr/index.md
       - 0001 双路互斥与 B 路串联文丘里: adr/0001-dual-route-inline-venturi.md
