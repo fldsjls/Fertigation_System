@@ -1,0 +1,19 @@
+{
+  "name": "fertigation-system-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Data-driven documentation, calculation and drawing pipeline for a dual-route fertigation system.",
+  "scripts": {
+    "data:sync": "node scripts/sync-data.mjs",
+    "data:check": "node scripts/verify-generated.mjs",
+    "test": "node --test tests/unit/calculation-core.test.js tests/unit/interface-rules.test.js tests/unit/fixture-scenarios.test.js tests/integration/pipeline.test.js",
+    "docs:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-docs.ps1"
+  },
+  "dependencies": {
+    "exceljs": "4.4.0",
+    "sharp": "0.35.3"
+  },
+  "overrides": {
+    "uuid": "11.1.1"
+  }
+}

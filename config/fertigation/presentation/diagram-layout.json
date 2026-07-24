@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "canvas": {
+    "width": 1600,
+    "height": 920,
+    "background": "#F4F8FC"
+  },
+  "theme": {
+    "navy": "#123354",
+    "blue": "#1261A6",
+    "green": "#15965A",
+    "red": "#DC4E54",
+    "amber": "#C98B16",
+    "ink": "#1F3346",
+    "muted": "#60768A",
+    "line": "#C8D8E8",
+    "panel": "#FFFFFF"
+  },
+  "bands": {
+    "header_y": 34,
+    "upstream_y": 208,
+    "route_a_y": 386,
+    "route_b_y": 560,
+    "downstream_y": 742
+  },
+  "nodes": {
+    "water-source": { "x": 105, "y": 208 },
+    "backflow": { "x": 260, "y": 208 },
+    "filter": { "x": 420, "y": 208 },
+    "controller": { "x": 610, "y": 208 },
+    "check-a": { "x": 895, "y": 386 },
+    "venturi": { "x": 840, "y": 560 },
+    "check-b": { "x": 1030, "y": 560 },
+    "merge": { "x": 1140, "y": 472 },
+    "regulator": { "x": 1260, "y": 472 },
+    "mainline": { "x": 1410, "y": 472 },
+    "fertilizer-bucket": { "x": 725, "y": 735 },
+    "suction-check": { "x": 840, "y": 680 }
+  },
+  "measurement_legend": {
+    "x": 1045,
+    "y": 690,
+    "width": 470,
+    "height": 180
+  }
+}

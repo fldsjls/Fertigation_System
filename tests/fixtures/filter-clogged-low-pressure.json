@@ -1,0 +1,15 @@
+{
+  "sourceDynamicMpa": 0.2,
+  "regulatorSetMpa": 0.1,
+  "regulatorMinDifferentialMpa": 0.03,
+  "backflowLossMpa": 0.02,
+  "filterCleanLossMpa": 0.01,
+  "filterDirtyLossMpa": 0.04,
+  "controllerALossMpa": 0.01,
+  "checkALossMpa": 0.005,
+  "fittingsALossMpa": 0.005,
+  "controllerBLossMpa": 0.02,
+  "venturiLossMpa": 0.08,
+  "checkBLossMpa": 0.005,
+  "fittingsBLossMpa": 0.005
+}

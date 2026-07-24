@@ -1,0 +1,16 @@
+{
+  "model": "fixture-venturi",
+  "sourceReference": "fixture-data-sheet",
+  "maxPressureMpa": 0.5,
+  "minMotiveFlowLph": 80,
+  "maxMotiveFlowLph": 150,
+  "curveP1Mpa": 0.3,
+  "curveP2Mpa": 0.15,
+  "curveMotiveFlowLph": 100,
+  "curveSuctionFlowLph": 5,
+  "actualP1Mpa": 0.3,
+  "actualP2Mpa": 0.15,
+  "motiveFlowLph": 8,
+  "targetSuctionLph": 2,
+  "curvePointConfirmed": true
+}

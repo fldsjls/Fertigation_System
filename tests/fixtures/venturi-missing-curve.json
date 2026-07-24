@@ -1,0 +1,16 @@
+{
+  "model": "",
+  "sourceReference": "",
+  "maxPressureMpa": null,
+  "minMotiveFlowLph": null,
+  "maxMotiveFlowLph": null,
+  "curveP1Mpa": null,
+  "curveP2Mpa": null,
+  "curveMotiveFlowLph": null,
+  "curveSuctionFlowLph": null,
+  "actualP1Mpa": null,
+  "actualP2Mpa": null,
+  "motiveFlowLph": 8,
+  "targetSuctionLph": null,
+  "curvePointConfirmed": false
+}

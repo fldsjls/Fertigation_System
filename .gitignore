@@ -1,0 +1,9 @@
+.venv/
+.venv-docs/
+node_modules/
+site/
+outputs/
+data/fertigation/output/
+~$*.xlsx
+__pycache__/
+*.pyc

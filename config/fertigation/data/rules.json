@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "status_values": [
+    "已确定",
+    "待现场实测",
+    "待厂家确认"
+  ],
+  "thread_standards": [
+    "G",
+    "R",
+    "Rp",
+    "Rc",
+    "NPT",
+    "无螺纹",
+    "待确认"
+  ],
+  "genders": [
+    "内牙",
+    "外牙",
+    "倒钩",
+    "承插",
+    "卡套",
+    "软管",
+    "待确认"
+  ],
+  "seal_methods": [
+    "端面垫片/O形圈",
+    "螺纹密封",
+    "卡箍/压紧",
+    "承插密封",
+    "待确认"
+  ],
+  "units": {
+    "flow": "L/h",
+    "pressure": "MPa",
+    "tube_size": "mm",
+    "length": "m",
+    "density": "kg/m³",
+    "kinematic_viscosity": "m²/s"
+  },
+  "thread_aliases": {
+    "G1/2": "俗称4分",
+    "G1/4": "俗称2分"
+  },
+  "validation": {
+    "confirmed_port_requires": [
+      "thread_standard",
+      "nominal_size",
+      "gender",
+      "seal_method"
+    ],
+    "tube_requires_od_greater_than_id": true,
+    "mesh_does_not_imply_micron": true
+  }
+}

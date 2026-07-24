@@ -1,0 +1,25 @@
+{
+  "base": {
+    "p3Mpa": 0.15,
+    "mainLossMpa": 0.01,
+    "lateralLossMpa": 0.005,
+    "downstreamLossMpa": 0.002,
+    "densityKgM3": 1000,
+    "emitterMinPressureMpa": 0.05,
+    "emitterMaxPressureMpa": 0.2
+  },
+  "cases": [
+    {
+      "name": "zero",
+      "heightDifferenceM": 0
+    },
+    {
+      "name": "uphill",
+      "heightDifferenceM": 2
+    },
+    {
+      "name": "downhill",
+      "heightDifferenceM": -2
+    }
+  ]
+}

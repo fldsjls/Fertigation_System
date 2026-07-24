@@ -1,0 +1,48 @@
+{
+  "design_revision": "2026-07-24-v3",
+  "scenario": {
+    "name": "4滴头低流量边界",
+    "date": "2026-07-24",
+    "operator": ""
+  },
+  "system": {
+    "emitterCount": 4,
+    "emitterFlowLph": 2
+  },
+  "water": {
+    "densityKgM3": 1000,
+    "kinematicViscosityM2s": 0.000001004
+  },
+  "pipes": {
+    "main": {
+      "innerDiameterMm": 9,
+      "outerDiameterMm": 12,
+      "lengthM": 10,
+      "roughnessMm": 0,
+      "localK": 0
+    },
+    "lateral": {
+      "innerDiameterMm": 3,
+      "outerDiameterMm": 5,
+      "lengthM": 1,
+      "roughnessMm": 0,
+      "localK": 0
+    }
+  },
+  "pressure_points": {
+    "P0": null,
+    "P1": null,
+    "P2": null,
+    "P3": null
+  },
+  "component_losses": {},
+  "venturi": {
+    "curvePointConfirmed": false
+  },
+  "fertigation": {
+    "waterConcentration": 0,
+    "unusableResidualL": 0
+  },
+  "flushing": {},
+  "uniformity_samples": []
+}

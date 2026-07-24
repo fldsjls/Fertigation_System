@@ -1,0 +1,18 @@
+{
+  "from": {
+    "port_id": "FROM-G12-M",
+    "thread_standard": "G",
+    "nominal_size": "1/2",
+    "gender": "外牙",
+    "seal_method": "端面垫片/O形圈",
+    "status": "已确定"
+  },
+  "to": {
+    "port_id": "TO-RP14-F",
+    "thread_standard": "Rp",
+    "nominal_size": "1/4",
+    "gender": "内牙",
+    "seal_method": "螺纹密封",
+    "status": "已确定"
+  }
+}
