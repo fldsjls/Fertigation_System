@@ -1,27 +1,29 @@
-# 双路自动水肥一体化系统
+# V4 双液源水肥药一体化系统
 
-本仓库保存“单进水口、A/B 双独立出水口、按计划互斥运行”的微型滴灌施肥系统设计说明。
+本仓库保存“单一水源、A/B 双路控制、肥料/农药双液源、滴灌/上空喷灌双末端互斥运行”的工程设计说明。
 
 设计基准水路为：
 
 ```text
 水源 → 倒流防止器 → 过滤器 → 双路控制器
-                           ├─ A → 止回阀 ─────────────┐
-                           └─ B → 文丘里 → 止回阀 ───┤
-                                                    └→ 合流 → 减压阀 → 主管
-肥液桶过滤头 → 调节阀 → 耐肥液止回阀 → 文丘里侧吸口
+                           ├─ A → CV-A ──────────────┐
+                           └─ B → 文丘里 → CV-B ─────┤
+                                                    └→ 合流 → MV-END（三通选择阀）
+肥料桶 → 过滤头 → 调节阀 → CV-F ┐                            ├→ 滴灌减压 → 滴头
+                                 ├→ MV-SOURCE → 文丘里侧吸口
+农药桶 → 过滤头 → 调节阀 → CV-P ┘                            └→ 喷灌过滤/调压 → 上空喷头
 ```
 
-控制程序使用 `A → B → A` 完成预灌、施肥和冲洗。控制逻辑成立不代表文丘里一定能够吸肥；文丘里必须通过实际动态压力、流量和厂家性能曲线验算。
+手机控制器仍只负责 A/B；当前样机用两只带中位全关的三通手动选择阀：`MV-END` 在滴灌/关闭/喷灌之间选择，`MV-SOURCE` 在肥料/关闭/农药之间选择。水力与防串液验收通过后，第二阶段再确定电动三通执行方案。施肥与喷药都可使用 `A → B → A`，但必须按两个不同流量工况分别验算文丘里。
 
 ## 快速入口
 
 | 要做的事 | 入口 |
 |---|---|
 | 从整体了解系统 | [文档首页](docs/index.md) |
-| 查看水路、测点和流向 | [v3 工程拓扑图](docs/assets/generated/fertigation-system-topology-v3.svg) · [读图说明](docs/architecture/diagram-walkthrough.md) |
+| 查看水路、测点和流向 | [v4 工程拓扑图](docs/assets/generated/fertigation-system-topology-v4.svg) · [读图说明](docs/architecture/diagram-walkthrough.md) |
 | 核对部件、牙型和管径 | [部件选型](docs/design/component-sizing.md) · [接口规格清单](docs/reference/interface-schedule.md) |
-| 进行压力、肥液和冲洗计算 | [计算规则](docs/design/hydraulic-calculation.md) · [网页工程计算器](docs/calculations/engineering-calculator.md) |
+| 进行滴灌/喷灌压力、吸液和冲洗计算 | [计算规则](docs/design/hydraulic-calculation.md) · [网页工程计算器](docs/calculations/engineering-calculator.md) |
 | 安装、调试和运行 | [安装与清水调试](docs/operations/installation-commissioning.md) · [A → B → A 程序](docs/operations/controller-program.md) · [故障诊断](docs/operations/troubleshooting.md) |
 | 核对标准和厂家资料 | [资料来源](docs/reference/sources.md) |
 
@@ -96,7 +98,8 @@ npm.cmd run docs:build
 
 ## 重要边界
 
-- 本文档按可扩展的 `N` 个同时工作滴头计算；`4 × 2 L/h = 8 L/h` 只作为低流量边界示例。
-- 尚未取得水源动态压力、管长、高差和具体产品曲线前，不能声称系统已经满足压力或吸肥条件。
+- 本文档按 `N` 个滴头或 `M` 个喷头分别计算；`4 × 2 L/h = 8 L/h` 只作为滴灌低流量边界。
+- 喷灌管径不能直接套用现有 9/12 PE 管；尚未取得喷头总流量、压力范围、管长和具体产品曲线前，不能声称喷灌或吸液条件满足。
+- 农药剂量及施用方法只能来自登记标签；计算器不推荐农药剂量。
 - 饮用水水源的倒流防护必须按当地规范选型；A/B 支路止回阀不能替代水源污染防护。
 - 本仓库是设计、采购核对和调试依据，不替代现场安装人员或当地给排水专业人员的安全确认。

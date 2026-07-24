@@ -2,8 +2,9 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "fertigation-calculator.v1";
-  const STORAGE_VERSION = 1;
+  const STORAGE_KEY = "fertigation-calculator.v2";
+  const LEGACY_STORAGE_KEY = "fertigation-calculator.v1";
+  const STORAGE_VERSION = 2;
   const STATUS_LABELS = {
     calculated: "已计算",
     pending: "待确认",
@@ -277,6 +278,16 @@
       }, "calculated");
     }
 
+    function addNullable() {
+      const values = Array.from(arguments);
+      if (values.some(function (value) { return value === null; })) {
+        return null;
+      }
+      return values.reduce(function (sum, value) {
+        return sum + value;
+      }, 0);
+    }
+
     function writeSummary(name, status, reason) {
       const summary = app.querySelector('[data-summary="' + name + '"]');
       const badge = summary.querySelector(".calc-status");
@@ -298,6 +309,9 @@
       });
 
       return {
+        mode: {
+          selected: textValue("operatingMode") || "滴灌施肥",
+        },
         hydraulics: {
           system: {
             emitterCount: numberValue("emitterCount"),
@@ -320,8 +334,24 @@
             localK: numberValue("lateralLocalK"),
           },
         },
+        sprayHydraulics: {
+          system: {
+            nozzleCount: numberValue("sprayNozzleCount"),
+            nozzleFlowLph: numberValue("sprayNozzleFlowLph"),
+          },
+          water: {
+            densityKgM3: numberValue("densityKgM3"),
+            kinematicViscosityM2s: numberValue("kinematicViscosityM2s"),
+          },
+          pipe: {
+            innerDiameterMm: numberValue("sprayPipeInnerDiameterMm"),
+            lengthM: numberValue("sprayPipeLengthM"),
+            roughnessMm: numberValue("sprayPipeRoughnessMm"),
+            localK: numberValue("sprayPipeLocalK"),
+          },
+        },
         emitterPressure: {
-          p3Mpa: numberValue("fieldP3Mpa"),
+          p4Mpa: numberValue("fieldP4Mpa"),
           downstreamLossMpa: numberValue("downstreamLossMpa"),
           heightDifferenceM: numberValue("heightDifferenceM"),
           densityKgM3: numberValue("densityKgM3"),
@@ -344,6 +374,36 @@
           venturiLossMpa: numberValue("venturiLossMpa"),
           checkBLossMpa: numberValue("checkBLossMpa"),
           fittingsBLossMpa: numberValue("fittingsBLossMpa"),
+          dripValveLossMpa: numberValue("dripValveLossMpa"),
+        },
+        sprayPressure: {
+          p3Mpa: numberValue("fieldP3Mpa"),
+          measuredP5Mpa: numberValue("fieldP5Mpa"),
+          downstreamLossMpa: numberValue("sprayDownstreamLossMpa"),
+          heightDifferenceM: numberValue("sprayHeightDifferenceM"),
+          densityKgM3: numberValue("densityKgM3"),
+          nozzleMinPressureMpa: numberValue("sprayNozzleMinPressureMpa"),
+          nozzleMaxPressureMpa: numberValue("sprayNozzleMaxPressureMpa"),
+        },
+        sprayPressureBudget: {
+          sourceDynamicMpa: numberValue("sourceDynamicMpa"),
+          regulatorSetMpa: numberValue("sprayRegulatorSetMpa"),
+          regulatorMinDifferentialMpa: numberValue(
+            "sprayRegulatorMinDifferentialMpa"
+          ),
+          backflowLossMpa: numberValue("backflowLossMpa"),
+          filterCleanLossMpa: numberValue("filterCleanLossMpa"),
+          filterDirtyLossMpa: numberValue("filterDirtyLossMpa"),
+          controllerALossMpa: numberValue("controllerALossMpa"),
+          checkALossMpa: numberValue("checkALossMpa"),
+          fittingsALossMpa: numberValue("fittingsALossMpa"),
+          controllerBLossMpa: numberValue("controllerBLossMpa"),
+          venturiLossMpa: numberValue("venturiLossMpa"),
+          checkBLossMpa: numberValue("checkBLossMpa"),
+          fittingsBLossMpa: numberValue("fittingsBLossMpa"),
+          sprayValveLossMpa: numberValue("sprayValveLossMpa"),
+          sprayFilterLossMpa: numberValue("sprayFilterLossMpa"),
+          sprayFittingsLossMpa: numberValue("sprayFittingsLossMpa"),
         },
         fertigation: {
           waterConcentration: numberValue("waterConcentration"),
@@ -367,8 +427,33 @@
           actualP2Mpa: numberValue("fieldP2Mpa"),
           curvePointConfirmed: checkboxValue("venturiCurveConfirmed"),
         },
+        pesticide: {
+          waterConcentration: numberValue("pesticideWaterConcentration"),
+          motherConcentration: numberValue("pesticideMotherConcentration"),
+          targetConcentration: numberValue("pesticideTargetConcentration"),
+          durationMinutes: numberValue("pesticideDurationMinutes"),
+          unusableResidualL: numberValue("pesticideUnusableResidualL"),
+          measuredSuctionLph: numberValue("measuredPesticideSuctionLph"),
+          labelReference: textValue("pesticideLabelReference"),
+          methodConfirmed: checkboxValue("pesticideMethodConfirmed"),
+        },
+        sprayVenturi: {
+          model: textValue("venturiModel"),
+          sourceReference: textValue("venturiSourceReference"),
+          maxPressureMpa: numberValue("venturiMaxPressureMpa"),
+          minMotiveFlowLph: numberValue("venturiMinMotiveLph"),
+          maxMotiveFlowLph: numberValue("venturiMaxMotiveLph"),
+          curveP1Mpa: numberValue("sprayVenturiCurveP1Mpa"),
+          curveP2Mpa: numberValue("sprayVenturiCurveP2Mpa"),
+          curveMotiveFlowLph: numberValue("sprayVenturiCurveMotiveLph"),
+          curveSuctionFlowLph: numberValue("sprayVenturiCurveSuctionLph"),
+          actualP1Mpa: numberValue("sprayFieldP1Mpa"),
+          actualP2Mpa: numberValue("sprayFieldP2Mpa"),
+          curvePointConfirmed: checkboxValue("sprayVenturiCurveConfirmed"),
+        },
         flush: {
           actualFlushFlowLph: numberValue("actualFlushFlowLph"),
+          actualSprayFlushFlowLph: numberValue("actualSprayFlushFlowLph"),
         },
         uniformity: {
           collectionMinutes: numberValue("collectionMinutes"),
@@ -380,6 +465,9 @@
     function calculateAndRender(shouldSave) {
       const inputs = collectInputs();
       const hydraulics = core.calculateHydraulics(inputs.hydraulics);
+      const sprayHydraulics = core.calculateSprayHydraulics(
+        inputs.sprayHydraulics
+      );
       const mainLoss = hydraulics.main.values.totalLossMpa;
       const lateralLoss = hydraulics.lateral.values.totalLossMpa;
       const emitterPressure = core.calculateEmitterPressure({
@@ -387,7 +475,42 @@
         mainLossMpa: mainLoss,
         lateralLossMpa: lateralLoss,
       });
-      const pressureBudget = core.calculatePressureBudget(inputs.pressureBudget);
+      const pressureBudget = core.calculatePressureBudget({
+        ...inputs.pressureBudget,
+        fittingsALossMpa: addNullable(
+          inputs.pressureBudget.fittingsALossMpa,
+          inputs.pressureBudget.dripValveLossMpa
+        ),
+        fittingsBLossMpa: addNullable(
+          inputs.pressureBudget.fittingsBLossMpa,
+          inputs.pressureBudget.dripValveLossMpa
+        ),
+      });
+      const nozzlePressure = core.calculateNozzlePressure({
+        ...inputs.sprayPressure,
+        pipeLossMpa: sprayHydraulics.pipe.values.totalLossMpa,
+      });
+      const sprayPressureBudget = core.calculatePressureBudget({
+        ...inputs.sprayPressureBudget,
+        filterCleanLossMpa: addNullable(
+          inputs.sprayPressureBudget.filterCleanLossMpa,
+          inputs.sprayPressureBudget.sprayFilterLossMpa
+        ),
+        filterDirtyLossMpa: addNullable(
+          inputs.sprayPressureBudget.filterDirtyLossMpa,
+          inputs.sprayPressureBudget.sprayFilterLossMpa
+        ),
+        fittingsALossMpa: addNullable(
+          inputs.sprayPressureBudget.fittingsALossMpa,
+          inputs.sprayPressureBudget.sprayValveLossMpa,
+          inputs.sprayPressureBudget.sprayFittingsLossMpa
+        ),
+        fittingsBLossMpa: addNullable(
+          inputs.sprayPressureBudget.fittingsBLossMpa,
+          inputs.sprayPressureBudget.sprayValveLossMpa,
+          inputs.sprayPressureBudget.sprayFittingsLossMpa
+        ),
+      });
       const fertigation = core.calculateFertigation({
         ...inputs.fertigation,
         designFlowLph: hydraulics.systemFlow.designFlowLph.value,
@@ -397,11 +520,25 @@
         motiveFlowLph: fertigation.motiveFlowLph.value,
         targetSuctionLph: fertigation.targetSuctionLph.value,
       });
+      const pesticide = core.calculateFertigation({
+        ...inputs.pesticide,
+        designFlowLph: sprayHydraulics.systemFlow.designFlowLph.value,
+      });
+      const sprayVenturi = core.calculateVenturi({
+        ...inputs.sprayVenturi,
+        motiveFlowLph: pesticide.motiveFlowLph.value,
+        targetSuctionLph: pesticide.targetSuctionLph.value,
+      });
       const flush = core.calculateFlush({
         totalVolumeL: hydraulics.totalVolumeL.value,
         actualFlushFlowLph: inputs.flush.actualFlushFlowLph,
       });
+      const sprayFlush = core.calculateFlush({
+        totalVolumeL: sprayHydraulics.totalVolumeL.value,
+        actualFlushFlowLph: inputs.flush.actualSprayFlushFlowLph,
+      });
       const uniformity = core.calculateUniformity(inputs.uniformity);
+      const mode = core.calculateModeContract(inputs.mode);
 
       writeResult("designFlow", hydraulics.systemFlow.designFlowLph);
       writePipe(
@@ -417,9 +554,37 @@
       writeResult("totalVolume", hydraulics.totalVolumeL);
       writeResult("emitterPressure", emitterPressure.emitterPressureMpa);
       writeResult("heightLoss", emitterPressure.heightLossMpa);
+      writeResult("sprayFlow", sprayHydraulics.systemFlow.designFlowLph);
+      writePipe(
+        "spray",
+        sprayHydraulics.pipe,
+        sprayHydraulics.systemFlow.designFlowLph.value
+      );
+      writeResult("nozzlePressure", nozzlePressure.nozzlePressureMpa);
+      writeResult("sprayFlushMinutes", sprayFlush.flushMinutes);
+      writeResult("modeStatus", { value: null, status: mode.status, reason: mode.reason }, {
+        status: mode.status,
+        text:
+          mode.controllerProgram +
+          (mode.selectors
+            ? " · MV-END=" +
+              mode.selectors.endpoint +
+              " · MV-SOURCE=" +
+              mode.selectors.source
+            : ""),
+        reason: mode.purpose + "；" + mode.reason,
+      });
 
       Object.keys(pressureBudget.results).forEach(function (key) {
         writeBudgetRow(key, pressureBudget.results[key]);
+      });
+      [
+        ["sprayAClean", "aClean"],
+        ["sprayADirty", "aDirty"],
+        ["sprayBClean", "bClean"],
+        ["sprayBDirty", "bDirty"],
+      ].forEach(function (mapping) {
+        writeBudgetRow(mapping[0], sprayPressureBudget.results[mapping[1]]);
       });
 
       writeResult("targetSuction", fertigation.targetSuctionLph);
@@ -442,6 +607,22 @@
         reason: venturi.reason + "；" + venturiDetail,
       });
       writeResult("venturiSuctionMargin", venturi.suctionMarginLph);
+      writeResult("pesticideTargetSuction", pesticide.targetSuctionLph);
+      writeResult("pesticideMotherVolume", pesticide.motherVolumeL);
+      writeResult("pesticideBucketMinimum", pesticide.bucketMinimumL);
+      const pesticideAllowed =
+        inputs.pesticide.methodConfirmed &&
+        Boolean(inputs.pesticide.labelReference);
+      const pesticideVenturiStatus = pesticideAllowed
+        ? combineStatus(pesticide.status, sprayVenturi.status)
+        : "pending";
+      writeResult("pesticideVenturiStatus", sprayVenturi.suctionMarginLph, {
+        status: pesticideVenturiStatus,
+        text: STATUS_LABELS[pesticideVenturiStatus],
+        reason: pesticideAllowed
+          ? sprayVenturi.reason
+          : "登记标签或允许的喷施方法尚未确认；不输出可用结论",
+      });
 
       writeResult("flushMinutes", flush.flushMinutes);
       writeResult("uniformityAverage", uniformity.averageLph);
@@ -458,6 +639,14 @@
         venturi.status
       );
       const fieldStatus = combineStatus(flush.status, uniformity.status);
+      const sprayStatus = combineStatus(
+        mode.status,
+        sprayHydraulics.status,
+        nozzlePressure.status,
+        sprayPressureBudget.status,
+        pesticideVenturiStatus,
+        sprayFlush.status
+      );
       writeSummary(
         "hydraulics",
         hydraulicStatus,
@@ -477,6 +666,15 @@
             : "仍缺少浓度、运行时间或厂家工况"
       );
       writeSummary(
+        "spray",
+        sprayStatus,
+        sprayStatus === "calculated"
+          ? "喷灌水力、喷药工况和清水置换已计算"
+          : sprayStatus === "not-applicable"
+            ? "至少一项喷灌压力、管径或模式条件不适用"
+            : "仍缺少喷头、管径、压力、标签或厂家曲线数据"
+      );
+      writeSummary(
         "field",
         fieldStatus,
         fieldStatus === "calculated"
@@ -493,7 +691,7 @@
 
     function serializeInputs() {
       const inputs = {};
-      form.querySelectorAll("input[name]").forEach(function (input) {
+      form.querySelectorAll("input[name], select[name]").forEach(function (input) {
         inputs[input.name] =
           input.type === "checkbox" ? input.checked : input.value;
       });
@@ -527,16 +725,31 @@
         }
       }
       return {
-        schema_version: "1.0.0",
+        schema_version: "2.0.0",
         design_revision: currentDesignRevision,
         scenario: {
           name: "网页计算工况",
           date: localDateStamp(),
           operator: "",
         },
+        mode: {
+          selected: values.operatingMode || "滴灌施肥",
+        },
         system: {
           emitterCount: numericOrNull(values.emitterCount),
           emitterFlowLph: numericOrNull(values.emitterFlowLph),
+        },
+        spray: {
+          nozzleCount: numericOrNull(values.sprayNozzleCount),
+          nozzleFlowLph: numericOrNull(values.sprayNozzleFlowLph),
+          heightDifferenceM: numericOrNull(values.sprayHeightDifferenceM),
+          downstreamLossMpa: numericOrNull(values.sprayDownstreamLossMpa),
+          nozzleMinPressureMpa: numericOrNull(
+            values.sprayNozzleMinPressureMpa
+          ),
+          nozzleMaxPressureMpa: numericOrNull(
+            values.sprayNozzleMaxPressureMpa
+          ),
         },
         water: {
           densityKgM3: numericOrNull(values.densityKgM3),
@@ -557,6 +770,13 @@
             roughnessMm: numericOrNull(values.lateralRoughnessMm),
             localK: numericOrNull(values.lateralLocalK),
           },
+          spray: {
+            innerDiameterMm: numericOrNull(values.sprayPipeInnerDiameterMm),
+            outerDiameterMm: numericOrNull(values.sprayPipeOuterDiameterMm),
+            lengthM: numericOrNull(values.sprayPipeLengthM),
+            roughnessMm: numericOrNull(values.sprayPipeRoughnessMm),
+            localK: numericOrNull(values.sprayPipeLocalK),
+          },
         },
         pressure_points: {
           sourceDynamicMpa: numericOrNull(values.sourceDynamicMpa),
@@ -564,6 +784,10 @@
           P1: numericOrNull(values.fieldP1Mpa),
           P2: numericOrNull(values.fieldP2Mpa),
           P3: numericOrNull(values.fieldP3Mpa),
+          P4: numericOrNull(values.fieldP4Mpa),
+          P5: numericOrNull(values.fieldP5Mpa),
+          sprayP1: numericOrNull(values.sprayFieldP1Mpa),
+          sprayP2: numericOrNull(values.sprayFieldP2Mpa),
           heightDifferenceM: numericOrNull(values.heightDifferenceM),
           downstreamLossMpa: numericOrNull(values.downstreamLossMpa),
           emitterMinPressureMpa: numericOrNull(values.emitterMinPressureMpa),
@@ -584,6 +808,16 @@
           venturiLossMpa: numericOrNull(values.venturiLossMpa),
           checkBLossMpa: numericOrNull(values.checkBLossMpa),
           fittingsBLossMpa: numericOrNull(values.fittingsBLossMpa),
+          dripValveLossMpa: numericOrNull(values.dripValveLossMpa),
+          sprayValveLossMpa: numericOrNull(values.sprayValveLossMpa),
+          sprayFilterLossMpa: numericOrNull(values.sprayFilterLossMpa),
+          sprayRegulatorSetMpa: numericOrNull(
+            values.sprayRegulatorSetMpa
+          ),
+          sprayRegulatorMinDifferentialMpa: numericOrNull(
+            values.sprayRegulatorMinDifferentialMpa
+          ),
+          sprayFittingsLossMpa: numericOrNull(values.sprayFittingsLossMpa),
         },
         venturi: {
           model: values.venturiModel || "",
@@ -596,6 +830,17 @@
           curveMotiveFlowLph: numericOrNull(values.venturiCurveMotiveLph),
           curveSuctionFlowLph: numericOrNull(values.venturiCurveSuctionLph),
           curvePointConfirmed: Boolean(values.venturiCurveConfirmed),
+          sprayCurve: {
+            curveP1Mpa: numericOrNull(values.sprayVenturiCurveP1Mpa),
+            curveP2Mpa: numericOrNull(values.sprayVenturiCurveP2Mpa),
+            curveMotiveFlowLph: numericOrNull(
+              values.sprayVenturiCurveMotiveLph
+            ),
+            curveSuctionFlowLph: numericOrNull(
+              values.sprayVenturiCurveSuctionLph
+            ),
+            curvePointConfirmed: Boolean(values.sprayVenturiCurveConfirmed),
+          },
         },
         fertigation: {
           waterConcentration: numericOrNull(values.waterConcentration),
@@ -605,8 +850,31 @@
           unusableResidualL: numericOrNull(values.unusableResidualL),
           measuredSuctionLph: numericOrNull(values.measuredSuctionLph),
         },
+        pesticide: {
+          waterConcentration: numericOrNull(
+            values.pesticideWaterConcentration
+          ),
+          motherConcentration: numericOrNull(
+            values.pesticideMotherConcentration
+          ),
+          targetConcentration: numericOrNull(
+            values.pesticideTargetConcentration
+          ),
+          durationMinutes: numericOrNull(values.pesticideDurationMinutes),
+          unusableResidualL: numericOrNull(
+            values.pesticideUnusableResidualL
+          ),
+          measuredSuctionLph: numericOrNull(
+            values.measuredPesticideSuctionLph
+          ),
+          labelReference: values.pesticideLabelReference || "",
+          methodConfirmed: Boolean(values.pesticideMethodConfirmed),
+        },
         flushing: {
           actualFlushFlowLph: numericOrNull(values.actualFlushFlowLph),
+          actualSprayFlushFlowLph: numericOrNull(
+            values.actualSprayFlushFlowLph
+          ),
           collectionMinutes: numericOrNull(values.collectionMinutes),
         },
         uniformity_samples: samples,
@@ -618,11 +886,19 @@
       const losses = calculationCase.component_losses || {};
       const venturi = calculationCase.venturi || {};
       const fertigation = calculationCase.fertigation || {};
+      const pesticide = calculationCase.pesticide || {};
+      const sprayConfig = calculationCase.spray || {};
       const flushing = calculationCase.flushing || {};
       const main = (calculationCase.pipes && calculationCase.pipes.main) || {};
       const lateral =
         (calculationCase.pipes && calculationCase.pipes.lateral) || {};
+      const sprayPipe =
+        (calculationCase.pipes && calculationCase.pipes.spray) || {};
+      const sprayCurve = venturi.sprayCurve || {};
       return {
+        operatingMode:
+          (calculationCase.mode && calculationCase.mode.selected) ||
+          "滴灌施肥",
         emitterCount: calculationCase.system && calculationCase.system.emitterCount,
         emitterFlowLph:
           calculationCase.system && calculationCase.system.emitterFlowLph,
@@ -639,11 +915,26 @@
         lateralLengthM: lateral.lengthM,
         lateralRoughnessMm: lateral.roughnessMm,
         lateralLocalK: lateral.localK,
+        sprayNozzleCount: sprayConfig.nozzleCount,
+        sprayNozzleFlowLph: sprayConfig.nozzleFlowLph,
+        sprayPipeInnerDiameterMm: sprayPipe.innerDiameterMm,
+        sprayPipeOuterDiameterMm: sprayPipe.outerDiameterMm,
+        sprayPipeLengthM: sprayPipe.lengthM,
+        sprayPipeRoughnessMm: sprayPipe.roughnessMm,
+        sprayPipeLocalK: sprayPipe.localK,
+        sprayHeightDifferenceM: sprayConfig.heightDifferenceM,
+        sprayDownstreamLossMpa: sprayConfig.downstreamLossMpa,
+        sprayNozzleMinPressureMpa: sprayConfig.nozzleMinPressureMpa,
+        sprayNozzleMaxPressureMpa: sprayConfig.nozzleMaxPressureMpa,
         sourceDynamicMpa: pressure.sourceDynamicMpa,
         fieldP0Mpa: pressure.P0,
         fieldP1Mpa: pressure.P1,
         fieldP2Mpa: pressure.P2,
         fieldP3Mpa: pressure.P3,
+        fieldP4Mpa: pressure.P4,
+        fieldP5Mpa: pressure.P5,
+        sprayFieldP1Mpa: pressure.sprayP1,
+        sprayFieldP2Mpa: pressure.sprayP2,
         heightDifferenceM: pressure.heightDifferenceM,
         downstreamLossMpa: pressure.downstreamLossMpa,
         emitterMinPressureMpa: pressure.emitterMinPressureMpa,
@@ -660,6 +951,13 @@
         venturiLossMpa: losses.venturiLossMpa,
         checkBLossMpa: losses.checkBLossMpa,
         fittingsBLossMpa: losses.fittingsBLossMpa,
+        dripValveLossMpa: losses.dripValveLossMpa,
+        sprayValveLossMpa: losses.sprayValveLossMpa,
+        sprayFilterLossMpa: losses.sprayFilterLossMpa,
+        sprayRegulatorSetMpa: losses.sprayRegulatorSetMpa,
+        sprayRegulatorMinDifferentialMpa:
+          losses.sprayRegulatorMinDifferentialMpa,
+        sprayFittingsLossMpa: losses.sprayFittingsLossMpa,
         venturiModel: venturi.model,
         venturiSourceReference: venturi.sourceReference,
         venturiMaxPressureMpa: venturi.maxPressureMpa,
@@ -670,21 +968,110 @@
         venturiCurveMotiveLph: venturi.curveMotiveFlowLph,
         venturiCurveSuctionLph: venturi.curveSuctionFlowLph,
         venturiCurveConfirmed: venturi.curvePointConfirmed,
+        sprayVenturiCurveP1Mpa: sprayCurve.curveP1Mpa,
+        sprayVenturiCurveP2Mpa: sprayCurve.curveP2Mpa,
+        sprayVenturiCurveMotiveLph: sprayCurve.curveMotiveFlowLph,
+        sprayVenturiCurveSuctionLph: sprayCurve.curveSuctionFlowLph,
+        sprayVenturiCurveConfirmed: sprayCurve.curvePointConfirmed,
         waterConcentration: fertigation.waterConcentration,
         motherConcentration: fertigation.motherConcentration,
         targetConcentration: fertigation.targetConcentration,
         fertigationDurationMinutes: fertigation.durationMinutes,
         unusableResidualL: fertigation.unusableResidualL,
         measuredSuctionLph: fertigation.measuredSuctionLph,
+        pesticideWaterConcentration: pesticide.waterConcentration,
+        pesticideMotherConcentration: pesticide.motherConcentration,
+        pesticideTargetConcentration: pesticide.targetConcentration,
+        pesticideDurationMinutes: pesticide.durationMinutes,
+        pesticideUnusableResidualL: pesticide.unusableResidualL,
+        measuredPesticideSuctionLph: pesticide.measuredSuctionLph,
+        pesticideLabelReference: pesticide.labelReference,
+        pesticideMethodConfirmed: pesticide.methodConfirmed,
         actualFlushFlowLph: flushing.actualFlushFlowLph,
+        actualSprayFlushFlowLph: flushing.actualSprayFlushFlowLph,
         collectionMinutes: flushing.collectionMinutes,
       };
     }
 
-    function applyCase(calculationCase, sourceLabel) {
-      if (!calculationCase || calculationCase.schema_version !== "1.0.0") {
+    function migrateCase(calculationCase) {
+      if (!calculationCase) {
+        throw new Error("工况JSON为空。");
+      }
+      if (calculationCase.schema_version === "2.0.0") {
+        return calculationCase;
+      }
+      if (calculationCase.schema_version !== "1.0.0") {
         throw new Error("工况JSON版本不受支持。");
       }
+      const oldPressure = calculationCase.pressure_points || {};
+      return {
+        ...calculationCase,
+        schema_version: "2.0.0",
+        mode: { selected: "滴灌施肥" },
+        spray: {
+          nozzleCount: null,
+          nozzleFlowLph: null,
+          heightDifferenceM: 0,
+          downstreamLossMpa: 0,
+          nozzleMinPressureMpa: null,
+          nozzleMaxPressureMpa: null,
+        },
+        pipes: {
+          ...(calculationCase.pipes || {}),
+          spray: {
+            innerDiameterMm: null,
+            outerDiameterMm: null,
+            lengthM: null,
+            roughnessMm: null,
+            localK: null,
+          },
+        },
+        pressure_points: {
+          ...oldPressure,
+          P3: null,
+          P4: oldPressure.P3 ?? null,
+          P5: null,
+          sprayP1: null,
+          sprayP2: null,
+        },
+        component_losses: {
+          ...(calculationCase.component_losses || {}),
+          dripValveLossMpa: null,
+          sprayValveLossMpa: null,
+          sprayFilterLossMpa: null,
+          sprayRegulatorSetMpa: null,
+          sprayRegulatorMinDifferentialMpa: null,
+          sprayFittingsLossMpa: null,
+        },
+        venturi: {
+          ...(calculationCase.venturi || {}),
+          sprayCurve: {
+            curveP1Mpa: null,
+            curveP2Mpa: null,
+            curveMotiveFlowLph: null,
+            curveSuctionFlowLph: null,
+            curvePointConfirmed: false,
+          },
+        },
+        pesticide: {
+          waterConcentration: 0,
+          motherConcentration: null,
+          targetConcentration: null,
+          durationMinutes: null,
+          unusableResidualL: 0,
+          measuredSuctionLph: null,
+          labelReference: "",
+          methodConfirmed: false,
+        },
+        flushing: {
+          ...(calculationCase.flushing || {}),
+          actualSprayFlushFlowLph: null,
+        },
+      };
+    }
+
+    function applyCase(sourceCase, sourceLabel) {
+      const calculationCase = migrateCase(sourceCase);
       const samples = Array.isArray(calculationCase.uniformity_samples)
         ? calculationCase.uniformity_samples
         : [];
@@ -785,7 +1172,12 @@
 
     function restoreInputs() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        let raw = localStorage.getItem(STORAGE_KEY);
+        let legacy = false;
+        if (!raw) {
+          raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+          legacy = Boolean(raw);
+        }
         if (!raw) {
           buildSampleInputs(4);
           return false;
@@ -794,15 +1186,21 @@
         const state = JSON.parse(raw);
         if (
           !state ||
-          state.version !== STORAGE_VERSION ||
+          (!legacy && state.version !== STORAGE_VERSION) ||
+          (legacy && state.version !== 1) ||
           !state.inputs ||
           typeof state.inputs !== "object"
         ) {
-          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(legacy ? LEGACY_STORAGE_KEY : STORAGE_KEY);
           buildSampleInputs(4);
           return false;
         }
 
+        if (legacy) {
+          state.inputs.operatingMode = "滴灌施肥";
+          state.inputs.fieldP4Mpa = state.inputs.fieldP3Mpa || "";
+          state.inputs.fieldP3Mpa = "";
+        }
         const sampleCount = sanitizeSampleCount(state.inputs.sampleCount);
         buildSampleInputs(sampleCount);
         Object.keys(state.inputs).forEach(function (name) {
@@ -810,7 +1208,8 @@
         });
         const savedTime = new Date(state.savedAt);
         updateSaveStatus(
-          Number.isNaN(savedTime.getTime())
+          (legacy ? "已迁移旧版滴灌输入；" : "") +
+          (Number.isNaN(savedTime.getTime())
             ? "已恢复本机输入"
             : "已恢复 " +
                 savedTime.toLocaleString("zh-CN", {
@@ -819,13 +1218,18 @@
                   hour: "2-digit",
                   minute: "2-digit",
                 }) +
-                " 的输入",
+                " 的输入"),
           false
         );
+        if (legacy) {
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+          saveInputs();
+        }
         return true;
       } catch (error) {
         try {
           localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
         } catch (ignored) {
           // The calculator remains usable even if storage is blocked.
         }
@@ -879,6 +1283,7 @@
 
       try {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
       } catch (ignored) {
         // Clearing the form itself must not depend on storage availability.
       }

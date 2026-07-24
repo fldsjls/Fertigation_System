@@ -92,7 +92,7 @@ test("non-laminar pipe without roughness does not invent a pressure loss", () =>
 
 test("emitter pressure handles positive and negative elevation", () => {
   const base = {
-    p3Mpa: 0.15,
+    p4Mpa: 0.15,
     mainLossMpa: 0.01,
     lateralLossMpa: 0.005,
     downstreamLossMpa: 0.002,
@@ -117,6 +117,58 @@ test("emitter pressure handles positive and negative elevation", () => {
     0.000001,
     "four metres of elevation difference"
   );
+});
+
+test("spray hydraulics calculates total flow, pipe volume, and P5 pressure", () => {
+  const hydraulics = calculator.calculateSprayHydraulics({
+    system: { nozzleCount: 4, nozzleFlowLph: 120 },
+    water: water20C,
+    pipe: {
+      innerDiameterMm: 16,
+      lengthM: 12,
+      roughnessMm: 0.0015,
+      localK: 2,
+    },
+  });
+  assert.equal(hydraulics.systemFlow.designFlowLph.value, 480);
+  assert.ok(hydraulics.pipe.values.totalLossMpa > 0);
+  assert.ok(hydraulics.totalVolumeL.value > 2);
+
+  const pressure = calculator.calculateNozzlePressure({
+    p3Mpa: 0.25,
+    pipeLossMpa: hydraulics.pipe.values.totalLossMpa,
+    downstreamLossMpa: 0.01,
+    heightDifferenceM: 2,
+    densityKgM3: 1000,
+    nozzleMinPressureMpa: 0.1,
+    nozzleMaxPressureMpa: 0.3,
+  });
+  assert.equal(pressure.status, calculator.STATUS.CALCULATED);
+  assert.ok(pressure.nozzlePressureMpa.value < 0.25);
+});
+
+test("spray pressure detects insufficient pressure and undersized pipes remain visible", () => {
+  const pipe = calculator.calculateSprayHydraulics({
+    system: { nozzleCount: 8, nozzleFlowLph: 180 },
+    water: water20C,
+    pipe: {
+      innerDiameterMm: 6,
+      lengthM: 20,
+      roughnessMm: 0.0015,
+      localK: 4,
+    },
+  });
+  assert.ok(pipe.pipe.values.totalLossMpa > 0.1);
+  const pressure = calculator.calculateNozzlePressure({
+    p3Mpa: 0.12,
+    pipeLossMpa: pipe.pipe.values.totalLossMpa,
+    downstreamLossMpa: 0.01,
+    heightDifferenceM: 2,
+    densityKgM3: 1000,
+    nozzleMinPressureMpa: 0.1,
+    nozzleMaxPressureMpa: 0.3,
+  });
+  assert.equal(pressure.status, calculator.STATUS.NOT_APPLICABLE);
 });
 
 test("pressure budget covers clean and dirty filters and detects negative margin", () => {
@@ -300,6 +352,37 @@ test("uniformity validates sample count and positive measurements", () => {
       collectionMinutes: 10,
       volumesMl: [100, 100, 100, 0],
     }).status,
+    calculator.STATUS.NOT_APPLICABLE
+  );
+});
+
+test("five modes map to two three-way selector positions and forbidden pairings are rejected", () => {
+  const expected = {
+    停止: { endpoint: "关闭", source: "关闭" },
+    清水滴灌: { endpoint: "滴灌", source: "关闭" },
+    滴灌施肥: { endpoint: "滴灌", source: "肥料" },
+    清水喷灌: { endpoint: "喷灌", source: "关闭" },
+    上空喷药: { endpoint: "喷灌", source: "农药" },
+  };
+  for (const [mode, selectorPositions] of Object.entries(expected)) {
+    const result = calculator.calculateModeContract(mode);
+    assert.equal(result.status, calculator.STATUS.CALCULATED);
+    assert.deepEqual(result.selectors, selectorPositions);
+  }
+  assert.equal(
+    calculator.validateSelectorState({ endpoint: "滴灌", source: "农药" }).status,
+    calculator.STATUS.NOT_APPLICABLE
+  );
+  assert.equal(
+    calculator.validateSelectorState({ endpoint: "喷灌", source: "肥料" }).status,
+    calculator.STATUS.NOT_APPLICABLE
+  );
+  assert.equal(
+    calculator.validateSelectorState({ endpoint: "滴灌+喷灌", source: "关闭" }).status,
+    calculator.STATUS.NOT_APPLICABLE
+  );
+  assert.equal(
+    calculator.validateSelectorState({ endpoint: "关闭", source: "肥料" }).status,
     calculator.STATUS.NOT_APPLICABLE
   );
 });

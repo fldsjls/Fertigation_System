@@ -1,5 +1,5 @@
-site_name: 双路自动水肥一体化系统文档
-site_description: 双路互斥控制、文丘里施肥、部件选型、压力计算与现场调试
+site_name: V4 双液源水肥药一体化系统文档
+site_description: 双液源、滴灌/上空喷灌、共用文丘里、两只三通选择阀、工程计算与清水调试
 docs_dir: docs
 site_dir: site
 exclude_docs: |
@@ -53,11 +53,11 @@ nav:
       - 工程图读图与测点: architecture/diagram-walkthrough.md
       - 系统原理: architecture/system-overview.md
       - 部件选型与数量计算: design/component-sizing.md
-      - 压力与肥液计算: design/hydraulic-calculation.md
+      - 滴灌/喷灌压力与吸液计算: design/hydraulic-calculation.md
       - 工程计算工作表: calculations/engineering-calculator.md
   - 安装运行:
       - 安装与清水调试: operations/installation-commissioning.md
-      - A → B → A 控制程序: operations/controller-program.md
+      - A/B 程序与手动阀位: operations/controller-program.md
       - 故障诊断: operations/troubleshooting.md
   - 参考:
       - 接口、牙型与管径清单: reference/interface-schedule.md
@@ -65,3 +65,5 @@ nav:
   - ADR:
       - 决策索引: adr/index.md
       - 0001 双路互斥与 B 路串联文丘里: adr/0001-dual-route-inline-venturi.md
+      - 0002 双液源、双末端与现场模式: adr/0002-dual-liquid-dual-endpoint.md
+      - 0003 三通选择阀简化: adr/0003-three-way-selector-valves.md

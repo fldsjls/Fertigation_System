@@ -7,8 +7,8 @@ const ExcelJS = require("exceljs");
 const INPUT_SHEET = "02_工况输入";
 const BASELINE_SHEET = "01_当前设计基准";
 const META_SHEET = "_meta";
-const WORKBOOK_SCHEMA_VERSION = "1.0.0";
-const MANAGED_BASELINE_MARKER = "fertigation-baseline:v1";
+const WORKBOOK_SCHEMA_VERSION = "2.0.0";
+const MANAGED_BASELINE_MARKER = "fertigation-baseline:v2";
 
 function normalizeCellValue(value) {
   if (value === null || value === undefined || value === "") {
@@ -70,9 +70,20 @@ function buildCaseFromInputs(values, designRevision) {
       date: values.scenarioDate || null,
       operator: values.operator || ""
     },
+    mode: {
+      selected: values.operatingMode || "滴灌施肥"
+    },
     system: {
       emitterCount: numberOrNull(values.emitterCount),
       emitterFlowLph: numberOrNull(values.emitterFlowLph)
+    },
+    spray: {
+      nozzleCount: numberOrNull(values.sprayNozzleCount),
+      nozzleFlowLph: numberOrNull(values.sprayNozzleFlowLph),
+      heightDifferenceM: numberOrNull(values.sprayHeightDifferenceM),
+      downstreamLossMpa: numberOrNull(values.sprayDownstreamLossMpa),
+      nozzleMinPressureMpa: numberOrNull(values.sprayNozzleMinPressureMpa),
+      nozzleMaxPressureMpa: numberOrNull(values.sprayNozzleMaxPressureMpa)
     },
     water: {
       densityKgM3: numberOrNull(values.densityKgM3),
@@ -92,6 +103,13 @@ function buildCaseFromInputs(values, designRevision) {
         lengthM: numberOrNull(values.lateralLengthM),
         roughnessMm: numberOrNull(values.lateralRoughnessMm),
         localK: numberOrNull(values.lateralLocalK)
+      },
+      spray: {
+        innerDiameterMm: numberOrNull(values.sprayPipeInnerDiameterMm),
+        outerDiameterMm: numberOrNull(values.sprayPipeOuterDiameterMm),
+        lengthM: numberOrNull(values.sprayPipeLengthM),
+        roughnessMm: numberOrNull(values.sprayPipeRoughnessMm),
+        localK: numberOrNull(values.sprayPipeLocalK)
       }
     },
     pressure_points: {
@@ -100,6 +118,10 @@ function buildCaseFromInputs(values, designRevision) {
       P1: numberOrNull(values.fieldP1Mpa),
       P2: numberOrNull(values.fieldP2Mpa),
       P3: numberOrNull(values.fieldP3Mpa),
+      P4: numberOrNull(values.fieldP4Mpa),
+      P5: numberOrNull(values.fieldP5Mpa),
+      sprayP1: numberOrNull(values.sprayFieldP1Mpa),
+      sprayP2: numberOrNull(values.sprayFieldP2Mpa),
       heightDifferenceM: numberOrNull(values.heightDifferenceM),
       downstreamLossMpa: numberOrNull(values.downstreamLossMpa),
       emitterMinPressureMpa: numberOrNull(values.emitterMinPressureMpa),
@@ -117,7 +139,15 @@ function buildCaseFromInputs(values, designRevision) {
       controllerBLossMpa: numberOrNull(values.controllerBLossMpa),
       venturiLossMpa: numberOrNull(values.venturiLossMpa),
       checkBLossMpa: numberOrNull(values.checkBLossMpa),
-      fittingsBLossMpa: numberOrNull(values.fittingsBLossMpa)
+      fittingsBLossMpa: numberOrNull(values.fittingsBLossMpa),
+      dripValveLossMpa: numberOrNull(values.dripValveLossMpa),
+      sprayValveLossMpa: numberOrNull(values.sprayValveLossMpa),
+      sprayFilterLossMpa: numberOrNull(values.sprayFilterLossMpa),
+      sprayRegulatorSetMpa: numberOrNull(values.sprayRegulatorSetMpa),
+      sprayRegulatorMinDifferentialMpa: numberOrNull(
+        values.sprayRegulatorMinDifferentialMpa
+      ),
+      sprayFittingsLossMpa: numberOrNull(values.sprayFittingsLossMpa)
     },
     venturi: {
       model: values.venturiModel || "",
@@ -129,7 +159,14 @@ function buildCaseFromInputs(values, designRevision) {
       curveP2Mpa: numberOrNull(values.venturiCurveP2Mpa),
       curveMotiveFlowLph: numberOrNull(values.venturiCurveMotiveLph),
       curveSuctionFlowLph: numberOrNull(values.venturiCurveSuctionLph),
-      curvePointConfirmed: booleanValue(values.venturiCurveConfirmed)
+      curvePointConfirmed: booleanValue(values.venturiCurveConfirmed),
+      sprayCurve: {
+        curveP1Mpa: numberOrNull(values.sprayVenturiCurveP1Mpa),
+        curveP2Mpa: numberOrNull(values.sprayVenturiCurveP2Mpa),
+        curveMotiveFlowLph: numberOrNull(values.sprayVenturiCurveMotiveLph),
+        curveSuctionFlowLph: numberOrNull(values.sprayVenturiCurveSuctionLph),
+        curvePointConfirmed: booleanValue(values.sprayVenturiCurveConfirmed)
+      }
     },
     fertigation: {
       waterConcentration: numberOrNull(values.waterConcentration),
@@ -139,8 +176,19 @@ function buildCaseFromInputs(values, designRevision) {
       unusableResidualL: numberOrNull(values.unusableResidualL),
       measuredSuctionLph: numberOrNull(values.measuredSuctionLph)
     },
+    pesticide: {
+      waterConcentration: numberOrNull(values.pesticideWaterConcentration),
+      motherConcentration: numberOrNull(values.pesticideMotherConcentration),
+      targetConcentration: numberOrNull(values.pesticideTargetConcentration),
+      durationMinutes: numberOrNull(values.pesticideDurationMinutes),
+      unusableResidualL: numberOrNull(values.pesticideUnusableResidualL),
+      measuredSuctionLph: numberOrNull(values.measuredPesticideSuctionLph),
+      labelReference: values.pesticideLabelReference || "",
+      methodConfirmed: booleanValue(values.pesticideMethodConfirmed)
+    },
     flushing: {
       actualFlushFlowLph: numberOrNull(values.actualFlushFlowLph),
+      actualSprayFlushFlowLph: numberOrNull(values.actualSprayFlushFlowLph),
       collectionMinutes: numberOrNull(values.collectionMinutes)
     },
     uniformity_samples: samples
@@ -156,16 +204,18 @@ function setBaselineValues(sheet, systemData) {
   const rows = [
     ["设计版本", systemData.metadata.design_revision, "来自接口规格工作簿"],
     ["核对日期", systemData.metadata.checked_date, "事实层核对日期"],
-    ["权威拓扑", "水源→倒流防止器→过滤器→双路控制器→A/B止回后合流→减压→主管", "B路完整串联文丘里"],
+    ["权威拓扑", "水源→倒流防止器→过滤器→A/B互斥→合流→MV-END三通选择滴灌/喷灌", "B路完整串联共用文丘里；MV-SOURCE三通选择肥料/农药"],
     ["主水路候选接口", "G1/2（俗称4分）", "内牙/外牙及密封待厂家确认"],
-    ["测压口候选接口", "G1/4（俗称2分）", "P0–P3端口形式待厂家确认"],
+    ["测压口候选接口", "G1/4（俗称2分）", "P0–P5端口形式待厂家确认"],
     ["过滤等级", filter ? `${filter.mesh || "—"}目` : "—", filter && filter.nominal_micron ? `${filter.nominal_micron} μm` : "厂家标称微米待确认"],
     ["主管", mainPipe ? `${mainPipe.inner_diameter_mm}/${mainPipe.outer_diameter_mm} mm` : "—", "内径/外径"],
     ["支管", lateralPipe ? `${lateralPipe.inner_diameter_mm}/${lateralPipe.outer_diameter_mm} mm` : "—", "内径/外径"],
     ["P0", "过滤器后、控制器前", "共用上游动态压力"],
     ["P1", "文丘里入口前", "B路入口压力"],
     ["P2", "文丘里出口后、B止回阀前", "与P1计算文丘里压差"],
-    ["P3", "减压阀后、主管前", "验证滴头可用压力"]
+    ["P3", "A/B合流后、MV-END入口前", "验证公共段及末端三通选择阀入口压力"],
+    ["P4", "滴灌减压阀后、滴灌主管前", "验证滴头可用压力"],
+    ["P5", "最不利上空喷头入口", "验证喷头工作压力"]
   ];
   rows.forEach((row, index) => {
     const excelRow = 5 + index;
@@ -193,9 +243,17 @@ function normalizeInputFormats(inputSheet) {
     "scenarioName",
     "scenarioDate",
     "operator",
+    "operatingMode",
     "venturiModel",
     "venturiSourceReference",
+    "pesticideLabelReference",
   ]);
+  const booleanKeys = new Set([
+    "venturiCurveConfirmed",
+    "sprayVenturiCurveConfirmed",
+    "pesticideMethodConfirmed",
+  ]);
+  const integerKeys = new Set(["emitterCount", "sprayNozzleCount"]);
   for (let row = 5; row <= inputSheet.rowCount; row += 1) {
     const key = inputSheet.getCell(row, 1).value;
     if (!key) {
@@ -205,12 +263,12 @@ function normalizeInputFormats(inputSheet) {
     let numberFormat;
     if (textKeys.has(String(key))) {
       numberFormat = "@";
-    } else if (key === "venturiCurveConfirmed") {
+    } else if (booleanKeys.has(String(key))) {
       // A blank cell means "not yet confirmed" and avoids presenting FALSE
       // as if it were a measured field value. TRUE is preserved explicitly.
       valueCell.value = booleanValue(valueCell.value) ? true : null;
       numberFormat = "General";
-    } else if (key === "emitterCount") {
+    } else if (integerKeys.has(String(key))) {
       numberFormat = "0";
     } else {
       numberFormat = "0.000000";
@@ -242,7 +300,7 @@ function normalizeWorkbookFormulas(workbook, inputSheet) {
 
 function baselineHash(sheet) {
   const values = [];
-  for (let row = 5; row <= 16; row += 1) {
+  for (let row = 5; row <= 18; row += 1) {
     values.push([
       normalizeCellValue(sheet.getCell(row, 1).value),
       normalizeCellValue(sheet.getCell(row, 2).value),

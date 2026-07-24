@@ -1,7 +1,7 @@
 # ADR 0001：双路互斥与 B 路串联文丘里
 
 > 文档类型：架构决策记录  
-> 状态：Accepted  
+> 状态：Superseded in part by ADR 0002
 > 日期：2026-07-24
 
 ## 背景

@@ -3,16 +3,16 @@ hide:
   - toc
 ---
 
-# 双路自动水肥一体化系统
+# V4 双液源水肥药一体化系统
 
 > 文档类型：入口索引  
 > 最后核对日期：2026-07-24  
 > 事实来源：本仓库设计约束、现场待测参数及所购设备厂家数据表
 
-本网站记录双路智能控制器在“A/B 两个独立出水口、互斥运行”条件下的滴灌施肥设计。A 路负责清水预灌和冲洗；B 路的全部驱动水完整通过文丘里后才进入主管。
+本网站记录单一水源下的双液源、双末端改造。原手机双路控制器继续负责 A/B；A 路输送清水，B 路全部水流通过共用文丘里。当前先用 `MV-END`、`MV-SOURCE` 两只带中位全关的三通手动选择阀验证液源和末端切换，水力验收后再接入电控。
 
-<a class="diagram-zoom" href="assets/generated/fertigation-system-topology-v3.svg" title="打开全尺寸工程拓扑图">
-  <img src="assets/generated/fertigation-system-topology-v3.svg" alt="双路自动水肥一体化系统工程拓扑图">
+<a class="diagram-zoom" href="assets/generated/fertigation-system-topology-v4.svg" title="打开全尺寸工程拓扑图">
+  <img src="assets/generated/fertigation-system-topology-v4.svg" alt="V4 双液源滴灌与上空喷灌工程拓扑图">
 </a>
 
 <p class="figure-note">图 1：系统工程拓扑。连接关系、流向、测点和流量标记以本图为设计基准；点击图片可查看全尺寸版本。</p>
@@ -20,20 +20,20 @@ hide:
 <div class="status-grid">
   <div class="status-card">
     <strong>已确定设计</strong>
-    A/B 互斥、B 路串联文丘里、合流前双止回、合流后减压。
+    A/B 互斥、B 路串联共用文丘里、双桶独立、先合流再分滴灌/喷灌。
   </div>
   <div class="status-card">
     <strong>待现场实测</strong>
-    水源动态压力、管长、高差、实际滴头流量、吸液量和冲洗终点。
+    P0～P5、两末端流量、两桶吸液量、喷灌均匀性和清水置换终点。
   </div>
   <div class="status-card">
     <strong>待厂家确认</strong>
-    控制器反压能力、文丘里完整性能曲线、减压阀最小压差和材料兼容性。
+    手动阀、喷头、两套调压、喷灌管径、文丘里双工况曲线和材料兼容性；后续电控型号另行确认。
   </div>
 </div>
 
 !!! warning "先判断水力可行性"
-    `A → B → A` 的控制逻辑可以成立，但不能证明文丘里在现场会吸肥。若设计流量、入口压力或允许压损不落在所购文丘里的厂家曲线上，B 路判定为“不适用”。
+    `A → B → A` 既可用于滴灌施肥，也可用于上空喷药，但两个工况必须分别核对流量、P1/P2 和厂家曲线。喷药剂量与施用方法必须来自登记标签，系统不自行改变。
 
 ## 当前设计数据
 
@@ -48,19 +48,19 @@ hide:
 | 核对牙型和转接件 | [接口、牙型与管径清单](reference/interface-schedule.md) | 接口规格事实簿 |
 | 判断压力和文丘里 | [工程计算工作表](calculations/engineering-calculator.md) | 所购型号曲线与现场实测表 |
 | 安装并首次通水 | [安装与清水调试](operations/installation-commissioning.md) | [故障诊断](operations/troubleshooting.md) |
-| 设置自动计划 | [A → B → A 控制程序](operations/controller-program.md) | 控制器本地计划和互斥能力 |
+| 设置运行模式 | [A/B 程序与手动阀位](operations/controller-program.md) | 控制器本地计划和两只三通阀位置 |
 
 ## 图片说明
 
-<a class="diagram-zoom" href="assets/fertigation-installation-reference-v1.png" title="打开全尺寸实景参考图">
-  <img src="assets/fertigation-installation-reference-v1.png" alt="实景安装参考">
+<a class="diagram-zoom" href="assets/fertigation-installation-reference-v3.png" title="打开全尺寸实景参考图">
+  <img src="assets/fertigation-installation-reference-v3.png" alt="V4 两只三通选择阀、双桶、滴灌与上空喷灌实景安装参考">
 </a>
 
-<p class="figure-note">图 2：无品牌实景参考。它只用于理解固定方式和空间关系，不参与水力拓扑判定。</p>
+<p class="figure-note">图 2：无品牌实景参考。两只三通手动选择阀、塑料止回/调压件和单端喷灌进水用于表达空间关系；端口与流向仍以工程拓扑为准。</p>
 
 ## 使用原则
 
-1. 先用清水完成所有压力、反向窜流、滴头流量和文丘里吸液试验。
-2. 只有清水试验通过后才加入肥料。
+1. 两只母液桶均先装清水，分别完成压力、反向窜流、滴灌/喷灌流量和文丘里吸液试验。
+2. 只有清水试验通过后才加入肥料；农药还必须核对登记标签。
 3. 任何缺少厂家曲线或动态压力的关键项都标记为“待确认”，不能用接口口径代替性能数据。
-4. 主管冲洗时间由管内容积、实际流量和末端电导率恢复结果确定，不固定套用 5～10 分钟。
+4. 滴灌以末端水质恢复为冲洗终点；喷药按共用段和喷灌管内容积安排清水置换，并计入标签允许的总载水量。

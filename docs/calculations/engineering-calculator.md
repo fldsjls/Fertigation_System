@@ -1,7 +1,7 @@
 # 工程计算工作表
 
 > 文档类型：离线交互计算工具  
-> 适用模型：单灌区、主管加代表性毛管  
+> 适用模型：互斥运行的单滴灌区或单上空喷灌区
 > 数据保存：仅保存在当前浏览器，不上传
 
 [下载独立工程计算工作簿](../downloads/current-design-calculation.xlsx){ .md-button .md-button--primary }
@@ -36,6 +36,11 @@
       <span class="calc-status calc-status--pending">待确认</span>
       <strong>施肥与文丘里</strong>
       <small>等待浓度与厂家工况</small>
+    </div>
+    <div class="calc-summary__item" data-summary="spray">
+      <span class="calc-status calc-status--pending">待确认</span>
+      <strong>喷灌与喷药</strong>
+      <small>等待喷头、管径与标签数据</small>
     </div>
     <div class="calc-summary__item" data-summary="field">
       <span class="calc-status calc-status--pending">待确认</span>
@@ -281,14 +286,21 @@
           </span>
         </label>
         <label class="calc-field">
-          <span>P3：减压阀后</span>
+          <span>P3：A/B 合流后、末端分配前</span>
           <span class="calc-input">
             <input name="fieldP3Mpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
             <span>MPa</span>
           </span>
         </label>
         <label class="calc-field">
-          <span>滴头相对 P3 测点高差 <b>Δz</b></span>
+          <span>P4：滴灌减压阀后</span>
+          <span class="calc-input">
+            <input name="fieldP4Mpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+            <span>MPa</span>
+          </span>
+        </label>
+        <label class="calc-field">
+          <span>滴头相对 P4 测点高差 <b>Δz</b></span>
           <span class="calc-input">
             <input name="heightDifferenceM" type="number" step="any" inputmode="decimal" autocomplete="off">
             <span>m</span>
@@ -326,7 +338,7 @@
             <span class="calc-status calc-status--pending">待确认</span>
           </div>
           <output class="calc-result__value">—</output>
-          <p class="calc-result__reason">需要 P3、管损、其他下游压损和高差。</p>
+          <p class="calc-result__reason">需要 P4、管损、其他下游压损和高差。</p>
         </article>
         <article class="calc-result" data-result="heightLoss">
           <div class="calc-result__header">
@@ -338,21 +350,29 @@
         </article>
       </div>
 
-      <h3>减压与公共部件</h3>
+      <h3>滴灌减压与公共部件</h3>
       <div class="calc-input-grid">
         <label class="calc-field">
-          <span>减压阀设定压力</span>
+          <span>滴灌减压阀设定压力</span>
           <span class="calc-input">
             <input name="regulatorSetMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
             <span>MPa</span>
           </span>
         </label>
         <label class="calc-field">
-          <span>减压阀最小工作压差</span>
+          <span>滴灌减压阀最小工作压差</span>
           <span class="calc-input">
             <input name="regulatorMinDifferentialMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
             <span>MPa</span>
           </span>
+        </label>
+        <label class="calc-field">
+          <span>MV-END（滴灌位）当前流量压损</span>
+          <span class="calc-input">
+            <input name="dripValveLossMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+            <span>MPa</span>
+          </span>
+          <small>8 L/h 边界下须核对最低流量与最小压差。</small>
         </label>
         <label class="calc-field">
           <span>倒流防止器压损</span>
@@ -626,10 +646,173 @@
       </div>
     </section>
 
-    <section class="calc-section" aria-labelledby="calc-field-title">
+    <section class="calc-section" aria-labelledby="calc-spray-title">
       <div class="calc-section__heading">
         <div>
           <span class="calc-step" aria-hidden="true">05</span>
+          <h2 id="calc-spray-title">上空喷灌与喷药工况</h2>
+        </div>
+        <p>喷灌管径必须按喷头总流量计算；农药浓度和施用方法只接受登记标签输入。</p>
+      </div>
+
+      <h3>现场模式与喷灌水力</h3>
+      <div class="calc-input-grid">
+        <label class="calc-field">
+          <span>现场手动模式</span>
+          <select class="calc-text-input" name="operatingMode">
+            <option>停止</option>
+            <option>清水滴灌</option>
+            <option selected>滴灌施肥</option>
+            <option>清水喷灌</option>
+            <option>上空喷药</option>
+          </select>
+        </label>
+        <label class="calc-field">
+          <span>同时工作喷头数量 <b>M</b></span>
+          <span class="calc-input"><input name="sprayNozzleCount" type="number" min="1" step="1" inputmode="numeric" autocomplete="off"><span>个</span></span>
+        </label>
+        <label class="calc-field">
+          <span>单喷头标称流量</span>
+          <span class="calc-input"><input name="sprayNozzleFlowLph" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>L/h</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌管实际内径</span>
+          <span class="calc-input"><input name="sprayPipeInnerDiameterMm" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>mm</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌管外径</span>
+          <span class="calc-input"><input name="sprayPipeOuterDiameterMm" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>mm</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌主管及立管总长度</span>
+          <span class="calc-input"><input name="sprayPipeLengthM" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>m</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌管绝对粗糙度 ε</span>
+          <span class="calc-input"><input name="sprayPipeRoughnessMm" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>mm</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌管局部阻力 ΣK</span>
+          <span class="calc-input"><input name="sprayPipeLocalK" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"></span>
+        </label>
+        <label class="calc-field">
+          <span>喷头相对 P3 高差</span>
+          <span class="calc-input"><input name="sprayHeightDifferenceM" type="number" step="any" inputmode="decimal" value="0" autocomplete="off"><span>m</span></span>
+        </label>
+        <label class="calc-field">
+          <span>P5 最不利喷头入口实测</span>
+          <span class="calc-input"><input name="fieldP5Mpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷头最低工作压力</span>
+          <span class="calc-input"><input name="sprayNozzleMinPressureMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷头最高工作压力</span>
+          <span class="calc-input"><input name="sprayNozzleMaxPressureMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷头前其他下游压损</span>
+          <span class="calc-input"><input name="sprayDownstreamLossMpa" type="number" min="0" step="any" inputmode="decimal" value="0" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>MV-END（喷灌位）当前流量压损</span>
+          <span class="calc-input"><input name="sprayValveLossMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌过滤器压损</span>
+          <span class="calc-input"><input name="sprayFilterLossMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌调压阀设定压力</span>
+          <span class="calc-input"><input name="sprayRegulatorSetMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌调压阀最小工作压差</span>
+          <span class="calc-input"><input name="sprayRegulatorMinDifferentialMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>喷灌支路其他管件压损</span>
+          <span class="calc-input"><input name="sprayFittingsLossMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
+        </label>
+        <label class="calc-field">
+          <span>实测喷灌清水置换流量</span>
+          <span class="calc-input"><input name="actualSprayFlushFlowLph" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>L/h</span></span>
+        </label>
+      </div>
+
+      <div class="calc-result-grid calc-result-grid--four">
+        <article class="calc-result" data-result="modeStatus">
+          <div class="calc-result__header"><span>模式阀位</span><span class="calc-status calc-status--pending">待确认</span></div>
+          <output class="calc-result__value">—</output><p class="calc-result__reason">液源和末端必须互斥。</p>
+        </article>
+        <article class="calc-result" data-result="sprayFlow">
+          <div class="calc-result__header"><span>喷灌总流量</span><span class="calc-status calc-status--pending">待确认</span></div>
+          <output class="calc-result__value">—</output><p class="calc-result__reason">Q喷灌 = M × q喷头</p>
+        </article>
+        <article class="calc-result" data-result="nozzlePressure">
+          <div class="calc-result__header"><span>计算 P5</span><span class="calc-status calc-status--pending">待确认</span></div>
+          <output class="calc-result__value">—</output><p class="calc-result__reason">P3 减去喷灌管损、其他压损和高差。</p>
+        </article>
+        <article class="calc-result" data-result="sprayFlushMinutes">
+          <div class="calc-result__header"><span>理论清水置换时间</span><span class="calc-status calc-status--pending">待确认</span></div>
+          <output class="calc-result__value">—</output><p class="calc-result__reason">仅为一个喷灌管内容积。</p>
+        </article>
+      </div>
+
+      <div class="calc-table-wrap" tabindex="0" aria-label="喷灌管水力结果，可横向滚动">
+        <table class="calc-output-table">
+          <thead><tr><th>管段</th><th>流速</th><th>Re / 流态</th><th>摩阻系数</th><th>沿程压损</th><th>局部压损</th><th>总压损</th><th>管内容积</th></tr></thead>
+          <tbody>
+            <tr><th>喷灌主管/立管</th><td data-pipe-output="spray.velocity">—</td><td data-pipe-output="spray.reynolds">—</td><td data-pipe-output="spray.friction">—</td><td data-pipe-output="spray.lineLoss">—</td><td data-pipe-output="spray.localLoss">—</td><td data-pipe-output="spray.totalLoss">—</td><td data-pipe-output="spray.volume">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>喷灌末端压力预算</h3>
+      <div class="calc-table-wrap" tabindex="0" aria-label="喷灌 A B 路压力预算结果，可横向滚动">
+        <table class="calc-output-table">
+          <thead><tr><th>工况</th><th>所需水源压力</th><th>动态压力余量</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr data-budget-row="sprayAClean"><th>喷灌 A 路 / 过滤器洁净</th><td>—</td><td>—</td><td>待确认</td></tr>
+            <tr data-budget-row="sprayADirty"><th>喷灌 A 路 / 允许堵塞</th><td>—</td><td>—</td><td>待确认</td></tr>
+            <tr data-budget-row="sprayBClean"><th>喷药 B 路 / 过滤器洁净</th><td>—</td><td>—</td><td>待确认</td></tr>
+            <tr data-budget-row="sprayBDirty"><th>喷药 B 路 / 允许堵塞</th><td>—</td><td>—</td><td>待确认</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>农药载水、吸液与独立文丘里工况</h3>
+      <div class="calc-input-grid">
+        <label class="calc-field calc-field--wide"><span>农药登记标签/说明书</span><input class="calc-text-input" name="pesticideLabelReference" type="text" autocomplete="off"><small>记录产品名称与标签版本；本工具不推荐剂量。</small></label>
+        <label class="calc-field calc-checkbox"><input name="pesticideMethodConfirmed" type="checkbox"><span>已确认登记标签允许该作物、上空喷施方式和剂量</span></label>
+        <label class="calc-field"><span>载水背景浓度</span><span class="calc-input"><input name="pesticideWaterConcentration" type="number" min="0" step="any" value="0" autocomplete="off"></span></label>
+        <label class="calc-field"><span>农药桶母液浓度</span><span class="calc-input"><input name="pesticideMotherConcentration" type="number" min="0" step="any" autocomplete="off"></span></label>
+        <label class="calc-field"><span>标签给定目标喷液浓度</span><span class="calc-input"><input name="pesticideTargetConcentration" type="number" min="0" step="any" autocomplete="off"></span></label>
+        <label class="calc-field"><span>B 路喷药时间</span><span class="calc-input"><input name="pesticideDurationMinutes" type="number" min="0" step="any" autocomplete="off"><span>min</span></span></label>
+        <label class="calc-field"><span>农药桶不可吸残余量</span><span class="calc-input"><input name="pesticideUnusableResidualL" type="number" min="0" step="any" value="0" autocomplete="off"><span>L</span></span></label>
+        <label class="calc-field"><span>实测农药吸液流量</span><span class="calc-input"><input name="measuredPesticideSuctionLph" type="number" min="0" step="any" autocomplete="off"><span>L/h</span></span></label>
+        <label class="calc-field"><span>喷药工况 P1</span><span class="calc-input"><input name="sprayFieldP1Mpa" type="number" min="0" step="any" autocomplete="off"><span>MPa</span></span></label>
+        <label class="calc-field"><span>喷药工况 P2</span><span class="calc-input"><input name="sprayFieldP2Mpa" type="number" min="0" step="any" autocomplete="off"><span>MPa</span></span></label>
+        <label class="calc-field"><span>喷灌曲线工况 P1</span><span class="calc-input"><input name="sprayVenturiCurveP1Mpa" type="number" min="0" step="any" autocomplete="off"><span>MPa</span></span></label>
+        <label class="calc-field"><span>喷灌曲线工况 P2</span><span class="calc-input"><input name="sprayVenturiCurveP2Mpa" type="number" min="0" step="any" autocomplete="off"><span>MPa</span></span></label>
+        <label class="calc-field"><span>喷灌曲线驱动流量</span><span class="calc-input"><input name="sprayVenturiCurveMotiveLph" type="number" min="0" step="any" autocomplete="off"><span>L/h</span></span></label>
+        <label class="calc-field"><span>喷灌曲线吸液量</span><span class="calc-input"><input name="sprayVenturiCurveSuctionLph" type="number" min="0" step="any" autocomplete="off"><span>L/h</span></span></label>
+        <label class="calc-field calc-checkbox"><input name="sprayVenturiCurveConfirmed" type="checkbox"><span>已核对喷药工况所用厂家曲线点</span></label>
+      </div>
+
+      <div class="calc-result-grid calc-result-grid--four">
+        <article class="calc-result" data-result="pesticideTargetSuction"><div class="calc-result__header"><span>目标吸液量</span><span class="calc-status calc-status--pending">待确认</span></div><output class="calc-result__value">—</output><p class="calc-result__reason">仅按标签输入和质量平衡。</p></article>
+        <article class="calc-result" data-result="pesticideMotherVolume"><div class="calc-result__header"><span>农药母液体积</span><span class="calc-status calc-status--pending">待确认</span></div><output class="calc-result__value">—</output><p class="calc-result__reason">计入 B 路喷药时间。</p></article>
+        <article class="calc-result" data-result="pesticideBucketMinimum"><div class="calc-result__header"><span>农药桶最低有效容积</span><span class="calc-status calc-status--pending">待确认</span></div><output class="calc-result__value">—</output><p class="calc-result__reason">母液体积加不可吸残余量。</p></article>
+        <article class="calc-result" data-result="pesticideVenturiStatus"><div class="calc-result__header"><span>喷药文丘里核对</span><span class="calc-status calc-status--pending">待确认</span></div><output class="calc-result__value">—</output><p class="calc-result__reason">与滴灌施肥工况分开核对。</p></article>
+      </div>
+    </section>
+
+    <section class="calc-section" aria-labelledby="calc-field-title">
+      <div class="calc-section__heading">
+        <div>
+          <span class="calc-step" aria-hidden="true">06</span>
           <h2 id="calc-field-title">冲洗与滴头均匀度</h2>
         </div>
         <p>理论冲洗时间只对应一个管内容积；均匀度是否合格由项目目标决定。</p>
@@ -692,13 +875,13 @@
 
   <div class="calc-safety-note">
     <strong>最终检查</strong>
-    <p>任何“已计算”都只说明输入足以执行公式。采购文丘里前仍要取得拟购型号曲线；施肥前仍要以清水测量 P0～P3、实际吸液量、滴头流量和冲洗终点。</p>
+    <p>任何“已计算”都只说明输入足以执行公式。采购前仍要取得阀门、喷头和文丘里厂家资料；现场先以清水分别测量 P0～P5、两桶吸液量、两个末端流量与冲洗终点。农药剂量及施用方法必须来自登记标签。</p>
   </div>
 </div>
 
 ## 计算边界
 
-- 管路模型只覆盖一条主管和每个滴头一条相同代表性毛管，不求解任意分支管网。
+- 管路模型覆盖一条滴灌主管及代表性毛管，或一条喷灌主管/立管；两末端按互斥运行计算，不求解同时开启。
 - 阀门、过滤器、控制器、倒流防止器、减压阀和文丘里的压损必须采用厂家数据或现场实测。
 - 浏览器只保存输入和保存时间；所有结果会在页面加载时重新计算。
 - 详细公式和变量定义见[压力、肥液与冲洗计算](../design/hydraulic-calculation.md)。

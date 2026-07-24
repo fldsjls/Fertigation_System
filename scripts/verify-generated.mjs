@@ -108,14 +108,14 @@ async function verify() {
     renderInterfaceSchedule(systemData)
   );
   await assertEqualFile(
-    "docs/assets/generated/fertigation-system-topology-v3.svg",
+    "docs/assets/generated/fertigation-system-topology-v4.svg",
     renderTopologySvg(systemData, layout)
   );
 
   const pngMetadata = await sharp(
     path.join(
       root,
-      "docs/assets/generated/fertigation-system-topology-v3.png"
+      "docs/assets/generated/fertigation-system-topology-v4.png"
     )
   ).metadata();
   if (pngMetadata.width !== 2400 || pngMetadata.format !== "png") {
@@ -147,6 +147,8 @@ async function verify() {
   }
 
   for (const forbidden of [
+    "docs/assets/generated/fertigation-system-topology-v3.svg",
+    "docs/assets/generated/fertigation-system-topology-v3.png",
     "docs/assets/fertigation-system-topology-v2.svg",
     "docs/assets/fertigation-system-topology-v2.png",
     "docs/javascripts/fertigation-calculator-core.js",

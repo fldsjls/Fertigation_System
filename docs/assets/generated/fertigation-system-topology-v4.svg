@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1125" viewBox="0 0 2000 1125" role="img" aria-labelledby="title desc">
+  <title id="title">V4 双液源、滴灌与上空喷灌工程拓扑图</title>
+  <desc id="desc">单一水源进入原双路控制器。A路清水旁通，B路全部通过共用文丘里；肥料桶和农药桶经各自过滤、调节和止回阀进入一只三通液源选择阀，再接同一侧吸口。A、B合流后由一只三通末端选择阀切换滴灌或上空喷灌。</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#173A5B" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#1261A6"/></marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#15965A"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#DC4E54"/></marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#C98B16"/></marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#8653A6"/></marker>
+    <style>
+      text{font-family:"Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;fill:#1F3346}
+      .title{font-size:31px;font-weight:700}.subtitle{font-size:15px;fill:#60768A}
+      .section{font-size:15px;font-weight:700;letter-spacing:1px}.label{font-size:16px;font-weight:700}
+      .small{font-size:12px;fill:#60768A}.tiny{font-size:11px;fill:#60768A}.tag{font-size:13px;font-weight:700}
+      .point-id{font-size:11px;font-weight:700;fill:#fff}.panel{fill:#fff;stroke:#C8D8E8;stroke-width:1.5}
+      .node{stroke:#C8D8E8;stroke-width:2}.water{fill:none;stroke:#1261A6;stroke-width:11;stroke-linecap:round;stroke-linejoin:round}
+      .route-a{fill:none;stroke:#15965A;stroke-width:11;stroke-linecap:round;stroke-linejoin:round}
+      .route-b{fill:none;stroke:#DC4E54;stroke-width:11;stroke-linecap:round;stroke-linejoin:round}
+      .suction-f{fill:none;stroke:#C98B16;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+      .suction-p{fill:none;stroke:#8653A6;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+      .suction-common{fill:none;stroke:#445A70;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+    </style>
+  </defs>
+
+  <rect width="2000" height="1125" fill="#F4F8FC"/>
+  <rect x="30" y="25" width="1940" height="1075" rx="24" class="panel" filter="url(#shadow)"/>
+  <text x="68" y="76" class="title">V4 双液源 · 滴灌 / 上空喷灌工程拓扑</text>
+  <text x="70" y="104" class="subtitle">单一水源 · A/B 互斥 · B路完整穿过共用文丘里 · 双液源与双末端均互斥</text>
+  <rect x="1730" y="50" width="205" height="40" rx="20" fill="#E3F5EC"/>
+  <text x="1832" y="75" class="tag" text-anchor="middle">设计版本 2026-07-24-v4</text>
+
+  <text x="70" y="150" class="section" fill="#1261A6">01 共用上游与原双路控制器</text>
+  <path d="M125 220 H650" class="water" marker-end="url(#arrow-blue)"/>
+  <g transform="translate(125 220)">
+    <rect x="-55" y="-34" width="110" height="68" rx="14" class="node" fill="#EAF2F8"/>
+    <text y="-2" class="label" text-anchor="middle">单一水源</text>
+    <text y="18" class="small" text-anchor="middle"></text>
+  </g>
+  <g transform="translate(270 220)">
+    <rect x="-65" y="-34" width="130" height="68" rx="14" class="node" fill="#FFF4DD"/>
+    <text y="-2" class="label" text-anchor="middle">倒流防止器</text>
+    <text y="18" class="small" text-anchor="middle"></text>
+  </g>
+  <g transform="translate(425 220)">
+    <rect x="-66" y="-34" width="132" height="68" rx="14" class="node" fill="#E8F1F6"/>
+    <text y="-2" class="label" text-anchor="middle">公共过滤器</text>
+    <text y="18" class="small" text-anchor="middle">等级待确认</text>
+  </g>
+  <g transform="translate(605 220)">
+    <rect x="-85" y="-34" width="170" height="68" rx="14" class="node" fill="#DCEAF5"/>
+    <text y="-2" class="label" text-anchor="middle">A/B双路控制器</text>
+    <text y="18" class="small" text-anchor="middle">手机控制</text>
+  </g>
+  <g transform="translate(505 166)">
+    <circle r="17" fill="#1261A6"/>
+    <text y="5" class="point-id" text-anchor="middle">P0</text>
+    <text x="25" y="5" class="tiny" text-anchor="start">过滤器后、控制器前</text>
+  </g>
+
+  <text x="70" y="310" class="section" fill="#15965A">02 A 路 · 清水旁路</text>
+  <path d="M585 255 V360 H1185 V420" class="route-a"/>
+  <g transform="translate(915 360)">
+    <rect x="-39" y="-28" width="78" height="56" rx="12" fill="#fff" stroke="#15965A" stroke-width="3"/>
+    <path d="M-18 -12 L5 0 L-18 12 Z M10 -15 V15" fill="none" stroke="#15965A" stroke-width="3"/>
+    <text y="-39" class="tag" text-anchor="middle">CV-A</text>
+  </g>
+  <text x="730" y="340" class="small">预灌 / 普通清水 / 冲洗</text>
+
+  <text x="70" y="455" class="section" fill="#DC4E54">03 B 路 · 全流量通过共用文丘里</text>
+  <path d="M625 255 V500 H770" class="route-b"/>
+  <path d="M980 500 H1185 V420" class="route-b"/>
+  <g transform="translate(875 500)">
+    <rect x="-85" y="-34" width="170" height="68" rx="14" class="node" fill="#FFF0F0"/>
+    <text y="-2" class="label" text-anchor="middle">共用文丘里</text>
+    <text y="18" class="small" text-anchor="middle">型号待厂家确认</text>
+  </g>
+  <g transform="translate(1080 500)">
+    <rect x="-39" y="-28" width="78" height="56" rx="12" fill="#fff" stroke="#DC4E54" stroke-width="3"/>
+    <path d="M-18 -12 L5 0 L-18 12 Z M10 -15 V15" fill="none" stroke="#DC4E54" stroke-width="3"/>
+    <text y="-39" class="tag" text-anchor="middle">CV-B</text>
+  </g>
+  <g transform="translate(755 455)">
+    <circle r="17" fill="#1261A6"/>
+    <text y="5" class="point-id" text-anchor="middle">P1</text>
+    <text x="25" y="5" class="tiny" text-anchor="start">文丘里入口</text>
+  </g>
+  <g transform="translate(990 548)">
+    <circle r="17" fill="#1261A6"/>
+    <text y="5" class="point-id" text-anchor="middle">P2</text>
+    <text x="25" y="5" class="tiny" text-anchor="start">文丘里出口</text>
+  </g>
+
+  <text x="70" y="595" class="section" fill="#C98B16">04 两只独立母液桶 · 三通阀选择后进入同一侧吸口</text>
+  <g transform="translate(135 660)">
+    <rect x="-57.5" y="-34" width="115" height="68" rx="14" class="node" fill="#FFF6DC"/>
+    <text y="-2" class="label" text-anchor="middle">肥料桶</text>
+    <text y="18" class="small" text-anchor="middle">独立容器</text>
+  </g>
+  <g transform="translate(135 790)">
+    <rect x="-57.5" y="-34" width="115" height="68" rx="14" class="node" fill="#F4EAF9"/>
+    <text y="-2" class="label" text-anchor="middle">农药桶</text>
+    <text y="18" class="small" text-anchor="middle">按登记标签</text>
+  </g>
+  <path d="M192 660 H650 V711 H677" class="suction-f"/>
+  <path d="M192 790 H650 V739 H677" class="suction-p"/>
+  <path d="M793 725 H875 V535" class="suction-common" marker-end="url(#arrow-amber)"/>
+  <g transform="translate(275 660)">
+    <rect x="-47.5" y="-34" width="95" height="68" rx="14" class="node" fill="#FFFDF7"/>
+    <text y="-2" class="label" text-anchor="middle">过滤头</text>
+    <text y="18" class="small" text-anchor="middle">肥料专用</text>
+  </g>
+  <g transform="translate(275 790)">
+    <rect x="-47.5" y="-34" width="95" height="68" rx="14" class="node" fill="#FCF8FE"/>
+    <text y="-2" class="label" text-anchor="middle">过滤头</text>
+    <text y="18" class="small" text-anchor="middle">农药专用</text>
+  </g>
+  <g transform="translate(405 660)">
+    <rect x="-47.5" y="-34" width="95" height="68" rx="14" class="node" fill="#FFFDF7"/>
+    <text y="-2" class="label" text-anchor="middle">调节阀</text>
+    <text y="18" class="small" text-anchor="middle"></text>
+  </g>
+  <g transform="translate(405 790)">
+    <rect x="-47.5" y="-34" width="95" height="68" rx="14" class="node" fill="#FCF8FE"/>
+    <text y="-2" class="label" text-anchor="middle">调节阀</text>
+    <text y="18" class="small" text-anchor="middle"></text>
+  </g>
+  <g transform="translate(545 660)">
+    <rect x="-39" y="-28" width="78" height="56" rx="12" fill="#fff" stroke="#C98B16" stroke-width="3"/>
+    <path d="M-18 -12 L5 0 L-18 12 Z M10 -15 V15" fill="none" stroke="#C98B16" stroke-width="3"/>
+    <text y="-39" class="tag" text-anchor="middle">CV-F</text>
+  </g>
+  <g transform="translate(545 790)">
+    <rect x="-39" y="-28" width="78" height="56" rx="12" fill="#fff" stroke="#8653A6" stroke-width="3"/>
+    <path d="M-18 -12 L5 0 L-18 12 Z M10 -15 V15" fill="none" stroke="#8653A6" stroke-width="3"/>
+    <text y="-39" class="tag" text-anchor="middle">CV-P</text>
+  </g>
+  <g transform="translate(735 725)">
+    <rect x="-58" y="-34" width="116" height="68" rx="14" fill="#fff" stroke="#6F4A8E" stroke-width="3"/>
+    <path d="M-47 -14 H-20 L10 0 H47 M-47 14 H-20 L10 0" fill="none" stroke="#6F4A8E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M0 -19 V-29 M-13 -29 H13" fill="none" stroke="#6F4A8E" stroke-width="3" stroke-linecap="round"/>
+    <text y="-45" class="tag" text-anchor="middle">MV-SOURCE</text>
+    <text y="53" class="tiny" text-anchor="middle">肥料 / 关闭 / 农药</text>
+  </g>
+  <text x="888" y="585" class="small">同一侧吸口</text>
+
+  <g transform="translate(1185 420)"><circle r="25" fill="#fff" stroke="#1F3346" stroke-width="7"/><path d="M-9 0 H9" stroke="#1F3346" stroke-width="5"/><text y="-37" class="tag" text-anchor="middle">A/B合流</text></g>
+  <path d="M1210 420 H1370" class="water" marker-end="url(#arrow-blue)"/>
+  <g transform="translate(1290 490)">
+    <circle r="17" fill="#1261A6"/>
+    <text y="5" class="point-id" text-anchor="middle">P3</text>
+    <text x="-25" y="5" class="tiny" text-anchor="end">MV-END 入口前</text>
+  </g>
+  <g transform="translate(1370 420)">
+    <rect x="-58" y="-34" width="116" height="68" rx="14" fill="#fff" stroke="#1261A6" stroke-width="3"/>
+    <path d="M-47 0 H-10 L20 -14 H47 M-10 0 L20 14 H47" fill="none" stroke="#1261A6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M0 -19 V-29 M-13 -29 H13" fill="none" stroke="#1261A6" stroke-width="3" stroke-linecap="round"/>
+    <text y="-45" class="tag" text-anchor="middle">MV-END</text>
+    <text y="53" class="tiny" text-anchor="middle">滴灌 / 关闭 / 喷灌</text>
+  </g>
+
+  <text x="1040" y="590" class="section" fill="#15965A">05 滴灌支路</text>
+  <path d="M1428 406 H1470 V625 H1954" class="route-a"/>
+  <g transform="translate(1580 625)">
+    <rect x="-83" y="-34" width="166" height="68" rx="14" class="node" fill="#FFF4DD"/>
+    <text y="-2" class="label" text-anchor="middle">滴灌减压阀</text>
+    <text y="18" class="small" text-anchor="middle">原公共阀移入此支路</text>
+  </g>
+  <g transform="translate(1755 625)">
+    <rect x="-72.5" y="-34" width="145" height="68" rx="14" class="node" fill="#EAF8F0"/>
+    <text y="-2" class="label" text-anchor="middle">滴灌主管</text>
+    <text y="18" class="small" text-anchor="middle">9/12 mm（内/外径）</text>
+  </g>
+  <g transform="translate(1670 570)">
+    <circle r="17" fill="#1261A6"/>
+    <text y="5" class="point-id" text-anchor="middle">P4</text>
+    <text x="25" y="5" class="tiny" text-anchor="start">滴灌减压阀后</text>
+  </g>
+  <g transform="translate(1900 635)">
+    <path d="M-54 0 V55 M-18 0 V55 M18 0 V55 M54 0 V55" stroke="#15965A" stroke-width="5"/>
+    <path d="M-64 55 H-44 M-28 55 H-8 M8 55 H28 M44 55 H64" stroke="#1F3346" stroke-width="8" stroke-linecap="round"/>
+    <text y="82" class="small" text-anchor="middle">压力补偿滴头</text>
+  </g>
+
+  <text x="1040" y="790" class="section" fill="#1261A6">06 上空喷灌支路</text>
+  <path d="M1428 434 H1440 V835 H1790" class="water" marker-end="url(#arrow-blue)"/>
+  <g transform="translate(1560 835)">
+    <rect x="-67.5" y="-34" width="135" height="68" rx="14" class="node" fill="#EAF2F8"/>
+    <text y="-2" class="label" text-anchor="middle">喷灌过滤器</text>
+    <text y="18" class="small" text-anchor="middle">精度待喷头确认</text>
+  </g>
+  <g transform="translate(1710 835)">
+    <rect x="-67.5" y="-34" width="135" height="68" rx="14" class="node" fill="#FFF4DD"/>
+    <text y="-2" class="label" text-anchor="middle">喷灌调压阀</text>
+    <text y="18" class="small" text-anchor="middle">压力范围待确认</text>
+  </g>
+  <g transform="translate(1935 820)">
+    <circle r="17" fill="#1261A6"/>
+    <text y="5" class="point-id" text-anchor="middle">P5</text>
+    <text x="-25" y="5" class="tiny" text-anchor="end">最不利喷头</text>
+  </g>
+  <path d="M1790 835 H1810 V760 H1940" class="water"/>
+  <path d="M1830 760 V790 M1865 760 V790 M1900 760 V790 M1935 760 V790" stroke="#1261A6" stroke-width="5"/>
+  <path d="M1819 790 H1841 M1854 790 H1876 M1889 790 H1911 M1924 790 H1946" stroke="#1F3346" stroke-width="7" stroke-linecap="round"/>
+  <text x="1870" y="885" class="small" text-anchor="middle">喷灌管：管径待按喷头总流量计算</text>
+
+  <rect x="68" y="965" width="1864" height="102" rx="16" fill="#F7FBFF" stroke="#C8D8E8"/>
+  <text x="90" y="1000" class="tag">手动阀位模式：停止｜清水滴灌｜滴灌施肥｜清水喷灌｜上空喷药</text>
+  <text x="90" y="1030" class="small">当前使用 MV-END 与 MV-SOURCE 两只带中位关闭的三通手动选择阀；手机端仍只控制原 A/B。</text>
+  <text x="90" y="1056" class="small">边界：喷灌管径与喷头压力必须按喷头总流量计算；文丘里须分别按滴灌施肥与上空喷药两个工况核对厂家曲线。</text>
+</svg>

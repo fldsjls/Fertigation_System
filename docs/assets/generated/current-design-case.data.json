@@ -1,14 +1,25 @@
 {
-  "schema_version": "1.0.0",
-  "design_revision": "2026-07-24-v3",
+  "schema_version": "2.0.0",
+  "design_revision": "2026-07-24-v4",
   "scenario": {
     "name": "4滴头低流量边界",
     "date": "2026-07-24",
     "operator": ""
   },
+  "mode": {
+    "selected": "滴灌施肥"
+  },
   "system": {
     "emitterCount": 4,
     "emitterFlowLph": 2
+  },
+  "spray": {
+    "nozzleCount": null,
+    "nozzleFlowLph": null,
+    "heightDifferenceM": 0,
+    "downstreamLossMpa": 0,
+    "nozzleMinPressureMpa": null,
+    "nozzleMaxPressureMpa": null
   },
   "water": {
     "densityKgM3": 1000,
@@ -28,6 +39,13 @@
       "lengthM": 1,
       "roughnessMm": 0,
       "localK": 0
+    },
+    "spray": {
+      "innerDiameterMm": null,
+      "outerDiameterMm": null,
+      "lengthM": null,
+      "roughnessMm": null,
+      "localK": null
     }
   },
   "pressure_points": {
@@ -36,6 +54,10 @@
     "P1": null,
     "P2": null,
     "P3": null,
+    "P4": null,
+    "P5": null,
+    "sprayP1": null,
+    "sprayP2": null,
     "heightDifferenceM": 0,
     "downstreamLossMpa": 0,
     "emitterMinPressureMpa": null,
@@ -53,7 +75,13 @@
     "controllerBLossMpa": null,
     "venturiLossMpa": null,
     "checkBLossMpa": null,
-    "fittingsBLossMpa": null
+    "fittingsBLossMpa": null,
+    "dripValveLossMpa": null,
+    "sprayValveLossMpa": null,
+    "sprayFilterLossMpa": null,
+    "sprayRegulatorSetMpa": null,
+    "sprayRegulatorMinDifferentialMpa": null,
+    "sprayFittingsLossMpa": null
   },
   "venturi": {
     "model": "",
@@ -65,7 +93,14 @@
     "curveP2Mpa": null,
     "curveMotiveFlowLph": null,
     "curveSuctionFlowLph": null,
-    "curvePointConfirmed": false
+    "curvePointConfirmed": false,
+    "sprayCurve": {
+      "curveP1Mpa": null,
+      "curveP2Mpa": null,
+      "curveMotiveFlowLph": null,
+      "curveSuctionFlowLph": null,
+      "curvePointConfirmed": false
+    }
   },
   "fertigation": {
     "waterConcentration": 0,
@@ -75,8 +110,19 @@
     "unusableResidualL": 0,
     "measuredSuctionLph": null
   },
+  "pesticide": {
+    "waterConcentration": 0,
+    "motherConcentration": null,
+    "targetConcentration": null,
+    "durationMinutes": null,
+    "unusableResidualL": 0,
+    "measuredSuctionLph": null,
+    "labelReference": "",
+    "methodConfirmed": false
+  },
   "flushing": {
     "actualFlushFlowLph": null,
+    "actualSprayFlushFlowLph": null,
     "collectionMinutes": 10
   },
   "uniformity_samples": []

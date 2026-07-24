@@ -41,7 +41,7 @@ function renderMeasurementPoints(systemData) {
 ${rows}
 
 !!! note "测压顺序"
-    先记录 P0 和 P3，再在 B 路稳定运行时记录 P1、P2。文丘里实测压差为 \`ΔP文丘里 = P1 - P2\`；静态压力不能代替运行时读数。
+    先记录公共段 P0、P3，再按末端分别记录滴灌 P4 或喷灌最不利端 P5。文丘里必须分两次验算：滴灌施肥工况记录 P1/P2，喷药工况再记录 P1/P2；实测压差均为 \`ΔP文丘里 = P1 - P2\`。静态压力不能代替运行时读数。
 `;
 }
 
@@ -68,8 +68,8 @@ function renderInterfaceSchedule(systemData) {
 
 # 接口、牙型与管径清单
 
-> 文档类型：自动生成的采购核对表  
-> 设计版本：${md(systemData.metadata.design_revision)}  
+> 文档类型：自动生成的采购核对表
+> 设计版本：${md(systemData.metadata.design_revision)}
 > 核对日期：${md(systemData.metadata.checked_date)}
 
 !!! warning "候选值不是采购确认"
@@ -113,6 +113,9 @@ function renderDesignSummary(systemData, calculationCase) {
   const lateral = systemData.pipes.find(
     (pipe) => pipe.pipe_id === "PIPE-LATERAL"
   );
+  const spray = systemData.pipes.find(
+    (pipe) => pipe.pipe_id === "PIPE-SPRAY"
+  );
   const filter = systemData.filters[0];
   const emitterCount = calculationCase.system.emitterCount;
   const emitterFlow = calculationCase.system.emitterFlowLph;
@@ -125,10 +128,13 @@ function renderDesignSummary(systemData, calculationCase) {
 | 当前设计项 | 候选值 | 状态/边界 |
 |---|---|---|
 | 主水路接口 | G1/2（俗称4分） | 内牙、外牙及密封待厂家确认 |
-| P0–P3测压口 | G1/4（俗称2分） | 测压三通形式待厂家确认 |
+| P0–P5测压口 | G1/4（俗称2分） | 测压三通形式待厂家确认 |
 | 主管 | ${main ? `${main.inner_diameter_mm}/${main.outer_diameter_mm} mm（内/外径）` : "—"} | ${main ? statusMark(main.status) : "—"} |
 | 支管 | ${lateral ? `${lateral.inner_diameter_mm}/${lateral.outer_diameter_mm} mm（内/外径）` : "—"} | ${lateral ? statusMark(lateral.status) : "—"} |
+| 喷灌主管/立管 | ${spray && spray.inner_diameter_mm ? `${spray.inner_diameter_mm}/${spray.outer_diameter_mm} mm（内/外径）` : "待按喷头总流量计算"} | 不得直接套用现有9/12管 |
 | 过滤等级 | ${filter ? `${filter.mesh}目` : "—"} | 厂家标称微米待确认 |
+| 液源选择 | MV-SOURCE：肥料 / 关闭 / 农药 | 一只带中位全关的三通手动选择阀，双桶独立 |
+| 末端选择 | MV-END：滴灌 / 关闭 / 上空喷灌 | 一只带中位全关的三通手动选择阀；水力验收后再升级电控 |
 | 低流量边界工况 | ${md(emitterCount)} × ${md(emitterFlow)} L/h = ${md(designFlow)} L/h | 仅用于警示，不证明文丘里适用 |
 `;
 }

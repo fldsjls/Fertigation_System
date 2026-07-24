@@ -123,11 +123,11 @@ async function synchronize() {
   const svg = renderTopologySvg(systemData, layout);
   const svgPath = path.join(
     paths.generatedAssets,
-    "fertigation-system-topology-v3.svg"
+    "fertigation-system-topology-v4.svg"
   );
   const pngPath = path.join(
     paths.generatedAssets,
-    "fertigation-system-topology-v3.png"
+    "fertigation-system-topology-v4.png"
   );
   await writeText(svgPath, svg);
   await fs.mkdir(path.dirname(pngPath), { recursive: true });

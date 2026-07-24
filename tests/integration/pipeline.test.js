@@ -53,6 +53,8 @@ test("Excel sources normalize to the published design and case JSON", async () =
   assert.deepEqual(publishedCase, calculation.calculationCase);
   assert.equal(publishedCase.system.emitterCount, 4);
   assert.equal(publishedCase.system.emitterFlowLph, 2);
+  assert.equal(publishedCase.schema_version, "2.0.0");
+  assert.equal(publishedCase.mode.selected, "滴灌施肥");
 });
 
 test("design refresh preserves yellow input values", async () => {
@@ -134,7 +136,7 @@ test("Excel formula cache matches the JavaScript calculation core", async () => 
 test("generated topology is a 2400px PNG and current SVG has all points", async () => {
   const png = path.join(
     root,
-    "docs/assets/generated/fertigation-system-topology-v3.png"
+    "docs/assets/generated/fertigation-system-topology-v4.png"
   );
   const metadata = await sharp(png).metadata();
   assert.equal(metadata.width, 2400);
@@ -143,14 +145,18 @@ test("generated topology is a 2400px PNG and current SVG has all points", async 
   const svg = await fs.readFile(
     path.join(
       root,
-      "docs/assets/generated/fertigation-system-topology-v3.svg"
+      "docs/assets/generated/fertigation-system-topology-v4.svg"
     ),
     "utf8"
   );
-  for (const point of ["P0", "P1", "P2", "P3"]) {
+  for (const point of ["P0", "P1", "P2", "P3", "P4", "P5"]) {
     assert.match(svg, new RegExp(`>${point}<`));
   }
   assert.doesNotMatch(svg, /corrected|原图|旧图|修正版/);
+  for (const valve of ["MV-END", "MV-SOURCE"]) {
+    assert.match(svg, new RegExp(valve));
+  }
+  assert.doesNotMatch(svg, /\bMV-(?:D|S|F|P)\b/);
 });
 
 test("README entry points and the website runner stay valid", async () => {

@@ -148,6 +148,40 @@
     };
   }
 
+  function calculateOutletFlow(input, countLabel, flowLabel, formulaLabel) {
+    const count = validateNumber(input && input.count, countLabel, {
+      positive: true,
+      integer: true,
+    });
+    const outletFlow = validateNumber(input && input.flowLph, flowLabel, {
+      positive: true,
+    });
+    const validation = validationStatus([count, outletFlow]);
+    const formula = formulaLabel || "Q设计 = N × q末端";
+
+    if (validation.status !== STATUS.CALCULATED) {
+      const resultFactory =
+        validation.status === STATUS.PENDING ? missingResult : invalidResult;
+      return {
+        status: validation.status,
+        reason: validation.reason,
+        designFlowLph: resultFactory("L/h", validation.reason, formula),
+      };
+    }
+
+    return {
+      status: STATUS.CALCULATED,
+      reason: "末端总流量已计算",
+      designFlowLph: makeResult(
+        count.value * outletFlow.value,
+        "L/h",
+        STATUS.CALCULATED,
+        "按同时工作的末端数量计算",
+        formula
+      ),
+    };
+  }
+
   function calculatePipe(flowLph, pipe, water) {
     const flow = validateNumber(flowLph, "管段流量", { positive: true });
     const diameter = validateNumber(pipe && pipe.innerDiameterMm, "管道实际内径", {
@@ -326,8 +360,42 @@
     };
   }
 
+  function calculateSprayHydraulics(input) {
+    const systemFlow = calculateOutletFlow(
+      {
+        count: input && input.system && input.system.nozzleCount,
+        flowLph: input && input.system && input.system.nozzleFlowLph,
+      },
+      "同时工作喷头数量",
+      "单喷头流量",
+      "Q喷灌 = M × q喷头"
+    );
+    const pipe = calculatePipe(
+      systemFlow.designFlowLph.value,
+      input && input.pipe,
+      input && input.water
+    );
+    return {
+      status: combineStatus(systemFlow.status, pipe.status),
+      reason: [systemFlow.reason, pipe.reason].filter(Boolean).join("；"),
+      systemFlow: systemFlow,
+      pipe: pipe,
+      totalVolumeL: makeResult(
+        pipe.values.volumeL,
+        "L",
+        pipe.values.volumeL === null ? pipe.status : STATUS.CALCULATED,
+        pipe.values.volumeL === null
+          ? pipe.reason
+          : "喷灌主管及立管的理论内容积",
+        "V喷灌管 = πD²L/4"
+      ),
+    };
+  }
+
   function calculateEmitterPressure(input) {
-    const p3 = validateNumber(input && input.p3Mpa, "P3 动态压力", {
+    const p4Value =
+      input && !isBlank(input.p4Mpa) ? input.p4Mpa : input && input.p3Mpa;
+    const p4 = validateNumber(p4Value, "P4 动态压力", {
       nonNegative: true,
     });
     const mainLoss = validateNumber(input && input.mainLossMpa, "主管总压损", {
@@ -348,7 +416,7 @@
       positive: true,
     });
     const validation = validationStatus([
-      p3,
+      p4,
       mainLoss,
       lateralLoss,
       downstreamLoss,
@@ -363,7 +431,7 @@
     const heightLossMpa =
       density.value * GRAVITY_MS2 * height.value * PA_TO_MPA;
     const emitterPressureMpa =
-      p3.value -
+      p4.value -
       mainLoss.value -
       lateralLoss.value -
       downstreamLoss.value -
@@ -407,7 +475,101 @@
         "MPa",
         status,
         reason,
-        "P滴头 = P3 - ΔP主管 - ΔP毛管 - ΔP其他 - ρgΔz"
+        "P滴头 = P4 - ΔP主管 - ΔP毛管 - ΔP其他 - ρgΔz"
+      ),
+      heightLossMpa: makeResult(
+        heightLossMpa,
+        "MPa",
+        STATUS.CALCULATED,
+        height.value >= 0 ? "向上高差增加压力需求" : "向下高差释放压力需求",
+        "ΔP高差 = ρgΔz"
+      ),
+    };
+  }
+
+  function calculateNozzlePressure(input) {
+    const p3 = validateNumber(input && input.p3Mpa, "P3 动态压力", {
+      nonNegative: true,
+    });
+    const pipeLoss = validateNumber(
+      input && input.pipeLossMpa,
+      "喷灌管总压损",
+      { nonNegative: true }
+    );
+    const downstreamLoss = validateNumber(
+      input && input.downstreamLossMpa,
+      "喷头前其他下游压损",
+      { nonNegative: true }
+    );
+    const height = validateNumber(input && input.heightDifferenceM, "喷头高差");
+    const density = validateNumber(input && input.densityKgM3, "流体密度", {
+      positive: true,
+    });
+    const validation = validationStatus([
+      p3,
+      pipeLoss,
+      downstreamLoss,
+      height,
+      density,
+    ]);
+    if (validation.status !== STATUS.CALCULATED) {
+      const factory =
+        validation.status === STATUS.PENDING ? missingResult : invalidResult;
+      return {
+        status: validation.status,
+        reason: validation.reason,
+        nozzlePressureMpa: factory(
+          "MPa",
+          validation.reason,
+          "P5 = P3 - ΔP喷灌管 - ΔP其他 - ρgΔz"
+        ),
+        heightLossMpa: factory("MPa", validation.reason, "ΔP高差 = ρgΔz"),
+      };
+    }
+
+    const heightLossMpa =
+      density.value * GRAVITY_MS2 * height.value * PA_TO_MPA;
+    const nozzlePressureMpa =
+      p3.value - pipeLoss.value - downstreamLoss.value - heightLossMpa;
+    const minPressure = validateNumber(
+      input && input.nozzleMinPressureMpa,
+      "喷头最低工作压力",
+      { nonNegative: true }
+    );
+    const maxPressure = validateNumber(
+      input && input.nozzleMaxPressureMpa,
+      "喷头最高工作压力",
+      { positive: true }
+    );
+    let status = STATUS.CALCULATED;
+    let reason = "计算 P5 位于录入的喷头工作范围内";
+    if (!minPressure.ok || !maxPressure.ok) {
+      status =
+        (!minPressure.ok && !minPressure.missing) ||
+        (!maxPressure.ok && !maxPressure.missing)
+          ? STATUS.NOT_APPLICABLE
+          : STATUS.PENDING;
+      reason = !minPressure.ok ? minPressure.reason : maxPressure.reason;
+    } else if (maxPressure.value <= minPressure.value) {
+      status = STATUS.NOT_APPLICABLE;
+      reason = "喷头最高工作压力必须大于最低工作压力";
+    } else if (
+      nozzlePressureMpa < minPressure.value ||
+      nozzlePressureMpa > maxPressure.value
+    ) {
+      status = STATUS.NOT_APPLICABLE;
+      reason = "计算 P5 超出喷头工作压力范围";
+    }
+
+    return {
+      status: status,
+      reason: reason,
+      nozzlePressureMpa: makeResult(
+        nozzlePressureMpa,
+        "MPa",
+        status,
+        reason,
+        "P5 = P3 - ΔP喷灌管 - ΔP其他 - ρgΔz"
       ),
       heightLossMpa: makeResult(
         heightLossMpa,
@@ -428,7 +590,7 @@
       emitterPressureMpa: resultFactory(
         "MPa",
         validation.reason,
-        "P滴头 = P3 - ΔP主管 - ΔP毛管 - ΔP其他 - ρgΔz"
+        "P滴头 = P4 - ΔP主管 - ΔP毛管 - ΔP其他 - ρgΔz"
       ),
       heightLossMpa: resultFactory(
         "MPa",
@@ -999,6 +1161,87 @@
     };
   }
 
+  const MODE_CONTRACTS = Object.freeze({
+    停止: Object.freeze({
+      controllerProgram: "A/B均关",
+      selectors: Object.freeze({ endpoint: "关闭", source: "关闭" }),
+      purpose: "检修、换液",
+    }),
+    清水滴灌: Object.freeze({
+      controllerProgram: "A",
+      selectors: Object.freeze({ endpoint: "滴灌", source: "关闭" }),
+      purpose: "普通灌溉",
+    }),
+    滴灌施肥: Object.freeze({
+      controllerProgram: "A→B→A",
+      selectors: Object.freeze({ endpoint: "滴灌", source: "肥料" }),
+      purpose: "预灌、施肥、冲洗",
+    }),
+    清水喷灌: Object.freeze({
+      controllerProgram: "A",
+      selectors: Object.freeze({ endpoint: "喷灌", source: "关闭" }),
+      purpose: "喷头测试、清水输送",
+    }),
+    上空喷药: Object.freeze({
+      controllerProgram: "A→B→A",
+      selectors: Object.freeze({ endpoint: "喷灌", source: "农药" }),
+      purpose: "清水输送、喷药、管内容积置换",
+    }),
+  });
+
+  function validateSelectorState(state) {
+    const values = state || {};
+    const endpoint = values.endpoint || "关闭";
+    const source = values.source || "关闭";
+    if (!["关闭", "滴灌", "喷灌"].includes(endpoint)) {
+      return invalidResult("", "末端三通选择阀位置无效", "MV-END = 关闭 / 滴灌 / 喷灌");
+    }
+    if (!["关闭", "肥料", "农药"].includes(source)) {
+      return invalidResult("", "吸液三通选择阀位置无效", "MV-SOURCE = 关闭 / 肥料 / 农药");
+    }
+    if (source === "农药" && endpoint !== "喷灌") {
+      return invalidResult("", "禁止农药进入滴灌支路", "MV-SOURCE=农药 → MV-END=喷灌");
+    }
+    if (source === "肥料" && endpoint !== "滴灌") {
+      return invalidResult("", "禁止肥料进入喷灌支路", "MV-SOURCE=肥料 → MV-END=滴灌");
+    }
+    if (endpoint === "关闭" && source !== "关闭") {
+      return invalidResult("", "末端关闭时吸液选择阀也必须关闭", "MV-END=关闭 → MV-SOURCE=关闭");
+    }
+    return makeResult(
+      1,
+      "",
+      STATUS.CALCULATED,
+      "两只三通选择阀的位置满足液源与末端约束",
+      "MV-END 与 MV-SOURCE 均为单选三位阀"
+    );
+  }
+
+  function calculateModeContract(mode) {
+    const selected =
+      typeof mode === "string" ? mode : mode && mode.selected;
+    const contract = MODE_CONTRACTS[selected];
+    if (!contract) {
+      return {
+        status: STATUS.NOT_APPLICABLE,
+        reason: "未知现场模式",
+        selected: selected || "",
+        controllerProgram: "",
+        selectors: null,
+        purpose: "",
+      };
+    }
+    const validation = validateSelectorState(contract.selectors);
+    return {
+      status: validation.status,
+      reason: validation.reason,
+      selected: selected,
+      controllerProgram: contract.controllerProgram,
+      selectors: contract.selectors,
+      purpose: contract.purpose,
+    };
+  }
+
   function pendingUniformity(reason) {
     return {
       status: STATUS.PENDING,
@@ -1040,13 +1283,18 @@
   return Object.freeze({
     STATUS: STATUS,
     calculateSystemFlow: calculateSystemFlow,
+    calculateOutletFlow: calculateOutletFlow,
     calculatePipe: calculatePipe,
     calculateHydraulics: calculateHydraulics,
+    calculateSprayHydraulics: calculateSprayHydraulics,
     calculateEmitterPressure: calculateEmitterPressure,
+    calculateNozzlePressure: calculateNozzlePressure,
     calculatePressureBudget: calculatePressureBudget,
     calculateFertigation: calculateFertigation,
     calculateVenturi: calculateVenturi,
     calculateFlush: calculateFlush,
     calculateUniformity: calculateUniformity,
+    calculateModeContract: calculateModeContract,
+    validateSelectorState: validateSelectorState,
   });
 });
