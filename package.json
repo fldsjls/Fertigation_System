@@ -7,6 +7,7 @@
     "data:sync": "node scripts/sync-data.mjs",
     "data:check": "node scripts/verify-generated.mjs",
     "test": "node --test tests/unit/calculation-core.test.js tests/unit/interface-rules.test.js tests/unit/fixture-scenarios.test.js tests/integration/pipeline.test.js",
+    "docs:serve": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/serve-docs.ps1",
     "docs:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-docs.ps1"
   },
   "dependencies": {

@@ -152,3 +152,20 @@ test("generated topology is a 2400px PNG and current SVG has all points", async 
   }
   assert.doesNotMatch(svg, /corrected|原图|旧图|修正版/);
 });
+
+test("README entry points and the website runner stay valid", async () => {
+  const readme = await fs.readFile(path.join(root, "README.md"), "utf8");
+  const localLinks = Array.from(readme.matchAll(/\]\(([^)]+)\)/g))
+    .map((match) => match[1])
+    .filter((target) => !target.includes("://") && !target.startsWith("#"));
+
+  for (const target of localLinks) {
+    await fs.access(path.join(root, target));
+  }
+
+  const packageJson = JSON.parse(
+    await fs.readFile(path.join(root, "package.json"), "utf8")
+  );
+  assert.match(packageJson.scripts["docs:serve"], /serve-docs\.ps1/);
+  await fs.access(path.join(root, "scripts/serve-docs.ps1"));
+});

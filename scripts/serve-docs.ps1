@@ -1,3 +1,8 @@
+param(
+    [string]$Address = "127.0.0.1:8001",
+    [switch]$SkipSync
+)
+
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
@@ -36,14 +41,19 @@ Run these commands once from the repository root:
 
 Push-Location $repoRoot
 try {
-    & npm.cmd run data:check
-    if ($LASTEXITCODE -ne 0) { throw "data:check failed" }
+    if (-not $SkipSync) {
+        & npm.cmd run data:sync
+        if ($LASTEXITCODE -ne 0) {
+            throw "data:sync failed"
+        }
+    }
 
-    & npm.cmd test
-    if ($LASTEXITCODE -ne 0) { throw "test failed" }
-
-    & $python -m mkdocs build --strict
-    if ($LASTEXITCODE -ne 0) { throw "mkdocs strict build failed" }
+    Write-Host "Documentation site: http://$Address/"
+    Write-Host "Press Ctrl+C to stop."
+    & $python -m mkdocs serve --strict -a $Address
+    if ($LASTEXITCODE -ne 0) {
+        throw "mkdocs serve failed"
+    }
 }
 finally {
     Pop-Location

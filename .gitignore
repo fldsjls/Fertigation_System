@@ -2,7 +2,7 @@
 .venv-docs/
 node_modules/
 site/
-outputs/
+tests/.artifacts/
 data/fertigation/output/
 ~$*.xlsx
 __pycache__/
