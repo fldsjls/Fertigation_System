@@ -317,6 +317,7 @@
           system: {
             emitterCount: numberValue("emitterCount"),
             emitterFlowLph: numberValue("emitterFlowLph"),
+            emittersPerNode: 2,
           },
           water: {
             densityKgM3: numberValue("densityKgM3"),
@@ -328,7 +329,13 @@
             roughnessMm: numberValue("mainRoughnessMm"),
             localK: numberValue("mainLocalK"),
           },
-          lateralPipe: {
+          nodeBranchPipe: {
+            innerDiameterMm: numberValue("nodeBranchInnerDiameterMm"),
+            lengthM: numberValue("nodeBranchLengthM"),
+            roughnessMm: numberValue("nodeBranchRoughnessMm"),
+            localK: numberValue("nodeBranchLocalK"),
+          },
+          capillaryPipe: {
             innerDiameterMm: numberValue("lateralInnerDiameterMm"),
             lengthM: numberValue("lateralLengthM"),
             roughnessMm: numberValue("lateralRoughnessMm"),
@@ -372,7 +379,7 @@
           checkALossMpa: numberValue("checkALossMpa"),
           fittingsALossMpa: numberValue("fittingsALossMpa"),
           controllerBLossMpa: numberValue("controllerBLossMpa"),
-          venturiLossMpa: numberValue("venturiLossMpa"),
+          bypassDifferentialMpa: numberValue("bypassDifferentialMpa"),
           checkBLossMpa: numberValue("checkBLossMpa"),
           fittingsBLossMpa: numberValue("fittingsBLossMpa"),
           dripValveLossMpa: numberValue("dripValveLossMpa"),
@@ -399,7 +406,7 @@
           checkALossMpa: numberValue("checkALossMpa"),
           fittingsALossMpa: numberValue("fittingsALossMpa"),
           controllerBLossMpa: numberValue("controllerBLossMpa"),
-          venturiLossMpa: numberValue("venturiLossMpa"),
+          bypassDifferentialMpa: numberValue("bypassDifferentialMpa"),
           checkBLossMpa: numberValue("checkBLossMpa"),
           fittingsBLossMpa: numberValue("fittingsBLossMpa"),
           sprayValveLossMpa: numberValue("sprayValveLossMpa"),
@@ -424,6 +431,7 @@
           curveP2Mpa: numberValue("venturiCurveP2Mpa"),
           curveMotiveFlowLph: numberValue("venturiCurveMotiveLph"),
           curveSuctionFlowLph: numberValue("venturiCurveSuctionLph"),
+          actualMotiveFlowLph: numberValue("actualVenturiMotiveLph"),
           actualP1Mpa: numberValue("fieldP1Mpa"),
           actualP2Mpa: numberValue("fieldP2Mpa"),
           curvePointConfirmed: checkboxValue("venturiCurveConfirmed"),
@@ -448,6 +456,9 @@
           curveP2Mpa: numberValue("sprayVenturiCurveP2Mpa"),
           curveMotiveFlowLph: numberValue("sprayVenturiCurveMotiveLph"),
           curveSuctionFlowLph: numberValue("sprayVenturiCurveSuctionLph"),
+          actualMotiveFlowLph: numberValue(
+            "sprayActualVenturiMotiveLph"
+          ),
           actualP1Mpa: numberValue("sprayFieldP1Mpa"),
           actualP2Mpa: numberValue("sprayFieldP2Mpa"),
           curvePointConfirmed: checkboxValue("sprayVenturiCurveConfirmed"),
@@ -470,14 +481,36 @@
         inputs.sprayHydraulics
       );
       const mainLoss = hydraulics.main.values.totalLossMpa;
-      const lateralLoss = hydraulics.lateral.values.totalLossMpa;
+      const nodeBranchLoss = hydraulics.nodeBranch.values.totalLossMpa;
+      const capillaryLoss = hydraulics.capillary.values.totalLossMpa;
       const emitterPressure = core.calculateEmitterPressure({
         ...inputs.emitterPressure,
         mainLossMpa: mainLoss,
-        lateralLossMpa: lateralLoss,
+        nodeBranchLossMpa: nodeBranchLoss,
+        capillaryLossMpa: capillaryLoss,
       });
+      function measuredOrConfirmedDifferential(venturiInput, fallback) {
+        if (
+          venturiInput.actualP1Mpa !== null &&
+          venturiInput.actualP2Mpa !== null
+        ) {
+          return venturiInput.actualP1Mpa - venturiInput.actualP2Mpa;
+        }
+        if (
+          venturiInput.curvePointConfirmed &&
+          venturiInput.curveP1Mpa !== null &&
+          venturiInput.curveP2Mpa !== null
+        ) {
+          return venturiInput.curveP1Mpa - venturiInput.curveP2Mpa;
+        }
+        return fallback;
+      }
       const pressureBudget = core.calculatePressureBudget({
         ...inputs.pressureBudget,
+        bypassDifferentialMpa: measuredOrConfirmedDifferential(
+          inputs.venturi,
+          inputs.pressureBudget.bypassDifferentialMpa
+        ),
         fittingsALossMpa: addNullable(
           inputs.pressureBudget.fittingsALossMpa,
           inputs.pressureBudget.dripValveLossMpa
@@ -493,6 +526,10 @@
       });
       const sprayPressureBudget = core.calculatePressureBudget({
         ...inputs.sprayPressureBudget,
+        bypassDifferentialMpa: measuredOrConfirmedDifferential(
+          inputs.sprayVenturi,
+          inputs.sprayPressureBudget.bypassDifferentialMpa
+        ),
         filterCleanLossMpa: addNullable(
           inputs.sprayPressureBudget.filterCleanLossMpa,
           inputs.sprayPressureBudget.sprayFilterLossMpa
@@ -518,7 +555,6 @@
       });
       const venturi = core.calculateVenturi({
         ...inputs.venturi,
-        motiveFlowLph: fertigation.motiveFlowLph.value,
         targetSuctionLph: fertigation.targetSuctionLph.value,
       });
       const pesticide = core.calculateFertigation({
@@ -527,7 +563,6 @@
       });
       const sprayVenturi = core.calculateVenturi({
         ...inputs.sprayVenturi,
-        motiveFlowLph: pesticide.motiveFlowLph.value,
         targetSuctionLph: pesticide.targetSuctionLph.value,
       });
       const flush = core.calculateFlush({
@@ -548,8 +583,15 @@
         hydraulics.systemFlow.designFlowLph.value
       );
       writePipe(
+        "nodeBranch",
+        hydraulics.nodeBranch,
+        numberValue("emitterFlowLph") === null
+          ? null
+          : numberValue("emitterFlowLph") * 2
+      );
+      writePipe(
         "lateral",
-        hydraulics.lateral,
+        hydraulics.capillary,
         numberValue("emitterFlowLph")
       );
       writeResult("totalVolume", hydraulics.totalVolumeL);
@@ -726,7 +768,7 @@
         }
       }
       return {
-        schema_version: "2.0.0",
+        schema_version: "2.1.0",
         design_revision: currentDesignRevision,
         scenario: {
           name: "网页计算工况",
@@ -739,6 +781,7 @@
         system: {
           emitterCount: numericOrNull(values.emitterCount),
           emitterFlowLph: numericOrNull(values.emitterFlowLph),
+          emittersPerNode: 2,
         },
         spray: {
           nozzleCount: numericOrNull(values.sprayNozzleCount),
@@ -764,9 +807,18 @@
             roughnessMm: numericOrNull(values.mainRoughnessMm),
             localK: numericOrNull(values.mainLocalK),
           },
-          lateral: {
+          nodeBranch: {
+            innerDiameterMm: numericOrNull(
+              values.nodeBranchInnerDiameterMm
+            ),
+            outerDiameterMm: 12,
+            lengthM: numericOrNull(values.nodeBranchLengthM),
+            roughnessMm: numericOrNull(values.nodeBranchRoughnessMm),
+            localK: numericOrNull(values.nodeBranchLocalK),
+          },
+          capillary: {
             innerDiameterMm: numericOrNull(values.lateralInnerDiameterMm),
-            outerDiameterMm: null,
+            outerDiameterMm: 5,
             lengthM: numericOrNull(values.lateralLengthM),
             roughnessMm: numericOrNull(values.lateralRoughnessMm),
             localK: numericOrNull(values.lateralLocalK),
@@ -806,7 +858,9 @@
           checkALossMpa: numericOrNull(values.checkALossMpa),
           fittingsALossMpa: numericOrNull(values.fittingsALossMpa),
           controllerBLossMpa: numericOrNull(values.controllerBLossMpa),
-          venturiLossMpa: numericOrNull(values.venturiLossMpa),
+          bypassDifferentialMpa: numericOrNull(
+            values.bypassDifferentialMpa
+          ),
           checkBLossMpa: numericOrNull(values.checkBLossMpa),
           fittingsBLossMpa: numericOrNull(values.fittingsBLossMpa),
           dripValveLossMpa: numericOrNull(values.dripValveLossMpa),
@@ -830,6 +884,9 @@
           curveP2Mpa: numericOrNull(values.venturiCurveP2Mpa),
           curveMotiveFlowLph: numericOrNull(values.venturiCurveMotiveLph),
           curveSuctionFlowLph: numericOrNull(values.venturiCurveSuctionLph),
+          actualMotiveFlowLph: numericOrNull(
+            values.actualVenturiMotiveLph
+          ),
           curvePointConfirmed: Boolean(values.venturiCurveConfirmed),
           sprayCurve: {
             curveP1Mpa: numericOrNull(values.sprayVenturiCurveP1Mpa),
@@ -839,6 +896,9 @@
             ),
             curveSuctionFlowLph: numericOrNull(
               values.sprayVenturiCurveSuctionLph
+            ),
+            actualMotiveFlowLph: numericOrNull(
+              values.sprayActualVenturiMotiveLph
             ),
             curvePointConfirmed: Boolean(values.sprayVenturiCurveConfirmed),
           },
@@ -891,8 +951,13 @@
       const sprayConfig = calculationCase.spray || {};
       const flushing = calculationCase.flushing || {};
       const main = (calculationCase.pipes && calculationCase.pipes.main) || {};
-      const lateral =
-        (calculationCase.pipes && calculationCase.pipes.lateral) || {};
+      const nodeBranch =
+        (calculationCase.pipes && calculationCase.pipes.nodeBranch) || {};
+      const capillary =
+        (calculationCase.pipes &&
+          (calculationCase.pipes.capillary ||
+            calculationCase.pipes.lateral)) ||
+        {};
       const sprayPipe =
         (calculationCase.pipes && calculationCase.pipes.spray) || {};
       const sprayCurve = venturi.sprayCurve || {};
@@ -912,10 +977,14 @@
         mainLengthM: main.lengthM,
         mainRoughnessMm: main.roughnessMm,
         mainLocalK: main.localK,
-        lateralInnerDiameterMm: lateral.innerDiameterMm,
-        lateralLengthM: lateral.lengthM,
-        lateralRoughnessMm: lateral.roughnessMm,
-        lateralLocalK: lateral.localK,
+        nodeBranchInnerDiameterMm: nodeBranch.innerDiameterMm,
+        nodeBranchLengthM: nodeBranch.lengthM,
+        nodeBranchRoughnessMm: nodeBranch.roughnessMm,
+        nodeBranchLocalK: nodeBranch.localK,
+        lateralInnerDiameterMm: capillary.innerDiameterMm,
+        lateralLengthM: capillary.lengthM,
+        lateralRoughnessMm: capillary.roughnessMm,
+        lateralLocalK: capillary.localK,
         sprayNozzleCount: sprayConfig.nozzleCount,
         sprayNozzleFlowLph: sprayConfig.nozzleFlowLph,
         sprayPipeInnerDiameterMm: sprayPipe.innerDiameterMm,
@@ -949,7 +1018,8 @@
         checkALossMpa: losses.checkALossMpa,
         fittingsALossMpa: losses.fittingsALossMpa,
         controllerBLossMpa: losses.controllerBLossMpa,
-        venturiLossMpa: losses.venturiLossMpa,
+        bypassDifferentialMpa:
+          losses.bypassDifferentialMpa ?? losses.venturiLossMpa,
         checkBLossMpa: losses.checkBLossMpa,
         fittingsBLossMpa: losses.fittingsBLossMpa,
         dripValveLossMpa: losses.dripValveLossMpa,
@@ -968,11 +1038,13 @@
         venturiCurveP2Mpa: venturi.curveP2Mpa,
         venturiCurveMotiveLph: venturi.curveMotiveFlowLph,
         venturiCurveSuctionLph: venturi.curveSuctionFlowLph,
+        actualVenturiMotiveLph: venturi.actualMotiveFlowLph,
         venturiCurveConfirmed: venturi.curvePointConfirmed,
         sprayVenturiCurveP1Mpa: sprayCurve.curveP1Mpa,
         sprayVenturiCurveP2Mpa: sprayCurve.curveP2Mpa,
         sprayVenturiCurveMotiveLph: sprayCurve.curveMotiveFlowLph,
         sprayVenturiCurveSuctionLph: sprayCurve.curveSuctionFlowLph,
+        sprayActualVenturiMotiveLph: sprayCurve.actualMotiveFlowLph,
         sprayVenturiCurveConfirmed: sprayCurve.curvePointConfirmed,
         waterConcentration: fertigation.waterConcentration,
         motherConcentration: fertigation.motherConcentration,
@@ -998,77 +1070,80 @@
       if (!calculationCase) {
         throw new Error("工况JSON为空。");
       }
-      if (calculationCase.schema_version === "2.0.0") {
+      if (calculationCase.schema_version === "2.1.0") {
         return calculationCase;
       }
-      if (calculationCase.schema_version !== "1.0.0") {
+      if (calculationCase.schema_version === "1.0.0") {
+        const oldPressure = calculationCase.pressure_points || {};
+        return migrateCase({
+          ...calculationCase,
+          schema_version: "2.0.0",
+          mode: { selected: "滴灌施肥" },
+          spray: {
+            nozzleCount: null,
+            nozzleFlowLph: null,
+            heightDifferenceM: 0,
+            downstreamLossMpa: 0,
+            nozzleMinPressureMpa: null,
+            nozzleMaxPressureMpa: null,
+          },
+          pipes: {
+            ...(calculationCase.pipes || {}),
+            spray: {
+              innerDiameterMm: null,
+              outerDiameterMm: null,
+              lengthM: null,
+              roughnessMm: null,
+              localK: null,
+            },
+          },
+          pressure_points: {
+            ...oldPressure,
+            P3: null,
+            P4: oldPressure.P3 ?? null,
+            P5: null,
+            sprayP1: null,
+            sprayP2: null,
+          },
+          component_losses: {
+            ...(calculationCase.component_losses || {}),
+            dripValveLossMpa: null,
+            sprayValveLossMpa: null,
+            sprayFilterLossMpa: null,
+            sprayRegulatorSetMpa: null,
+            sprayRegulatorMinDifferentialMpa: null,
+            sprayFittingsLossMpa: null,
+          },
+          venturi: {
+            ...(calculationCase.venturi || {}),
+            sprayCurve: {
+              curveP1Mpa: null,
+              curveP2Mpa: null,
+              curveMotiveFlowLph: null,
+              curveSuctionFlowLph: null,
+              curvePointConfirmed: false,
+            },
+          },
+          pesticide: {
+            waterConcentration: 0,
+            motherConcentration: null,
+            targetConcentration: null,
+            durationMinutes: null,
+            unusableResidualL: 0,
+            measuredSuctionLph: null,
+            labelReference: "",
+            methodConfirmed: false,
+          },
+          flushing: {
+            ...(calculationCase.flushing || {}),
+            actualSprayFlushFlowLph: null,
+          },
+        });
+      }
+      if (calculationCase.schema_version !== "2.0.0") {
         throw new Error("工况JSON版本不受支持。");
       }
-      const oldPressure = calculationCase.pressure_points || {};
-      return {
-        ...calculationCase,
-        schema_version: "2.0.0",
-        mode: { selected: "滴灌施肥" },
-        spray: {
-          nozzleCount: null,
-          nozzleFlowLph: null,
-          heightDifferenceM: 0,
-          downstreamLossMpa: 0,
-          nozzleMinPressureMpa: null,
-          nozzleMaxPressureMpa: null,
-        },
-        pipes: {
-          ...(calculationCase.pipes || {}),
-          spray: {
-            innerDiameterMm: null,
-            outerDiameterMm: null,
-            lengthM: null,
-            roughnessMm: null,
-            localK: null,
-          },
-        },
-        pressure_points: {
-          ...oldPressure,
-          P3: null,
-          P4: oldPressure.P3 ?? null,
-          P5: null,
-          sprayP1: null,
-          sprayP2: null,
-        },
-        component_losses: {
-          ...(calculationCase.component_losses || {}),
-          dripValveLossMpa: null,
-          sprayValveLossMpa: null,
-          sprayFilterLossMpa: null,
-          sprayRegulatorSetMpa: null,
-          sprayRegulatorMinDifferentialMpa: null,
-          sprayFittingsLossMpa: null,
-        },
-        venturi: {
-          ...(calculationCase.venturi || {}),
-          sprayCurve: {
-            curveP1Mpa: null,
-            curveP2Mpa: null,
-            curveMotiveFlowLph: null,
-            curveSuctionFlowLph: null,
-            curvePointConfirmed: false,
-          },
-        },
-        pesticide: {
-          waterConcentration: 0,
-          motherConcentration: null,
-          targetConcentration: null,
-          durationMinutes: null,
-          unusableResidualL: 0,
-          measuredSuctionLph: null,
-          labelReference: "",
-          methodConfirmed: false,
-        },
-        flushing: {
-          ...(calculationCase.flushing || {}),
-          actualSprayFlushFlowLph: null,
-        },
-      };
+      return Core.migrateCalculationCase(calculationCase);
     }
 
     function applyCase(sourceCase, sourceLabel) {
@@ -1250,7 +1325,7 @@
     function loadExample() {
       if (
         !window.confirm(
-          "载入四滴头透明算例将覆盖当前工作表输入。是否继续？"
+          "载入 v5 十滴头透明算例将覆盖当前工作表输入。是否继续？"
         )
       ) {
         return;
@@ -1258,17 +1333,22 @@
 
       resetFormToDefaults();
       const example = {
-        emitterCount: 4,
+        emitterCount: 10,
         emitterFlowLph: 2,
+        sprayNozzleCount: 5,
         mainInnerDiameterMm: 9,
         mainLengthM: 10,
         mainRoughnessMm: 0,
         mainLocalK: 0,
+        nodeBranchInnerDiameterMm: "",
+        nodeBranchLengthM: "",
+        nodeBranchRoughnessMm: "",
+        nodeBranchLocalK: "",
         lateralInnerDiameterMm: 3,
         lateralLengthM: 1,
         lateralRoughnessMm: 0,
         lateralLocalK: 0,
-        actualFlushFlowLph: 8,
+        actualFlushFlowLph: 20,
       };
       Object.keys(example).forEach(function (name) {
         setField(name, example[name]);

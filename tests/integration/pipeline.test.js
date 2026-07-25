@@ -51,9 +51,13 @@ test("Excel sources normalize to the published design and case JSON", async () =
     )
   );
   assert.deepEqual(publishedCase, calculation.calculationCase);
-  assert.equal(publishedCase.system.emitterCount, 4);
+  assert.equal(publishedCase.system.emitterCount, 10);
   assert.equal(publishedCase.system.emitterFlowLph, 2);
-  assert.equal(publishedCase.schema_version, "2.0.0");
+  assert.equal(publishedCase.system.emittersPerNode, 2);
+  assert.equal(publishedCase.spray.nozzleCount, 5);
+  assert.equal(publishedCase.schema_version, "2.1.0");
+  assert.ok(publishedCase.pipes.nodeBranch);
+  assert.ok(publishedCase.pipes.capillary);
   assert.equal(publishedCase.mode.selected, "滴灌施肥");
 });
 
@@ -99,7 +103,7 @@ test("Excel formula cache matches the JavaScript calculation core", async () => 
   );
   const sheet = workbook.getWorksheet("03_管路水力");
   const jsResult = calculator.calculateHydraulics({
-    system: { emitterCount: 4, emitterFlowLph: 2 },
+    system: { emitterCount: 10, emitterFlowLph: 2, emittersPerNode: 2 },
     water: {
       densityKgM3: 1000,
       kinematicViscosityM2s: 1.004e-6,
@@ -110,7 +114,13 @@ test("Excel formula cache matches the JavaScript calculation core", async () => 
       roughnessMm: 0,
       localK: 0,
     },
-    lateralPipe: {
+    nodeBranchPipe: {
+      innerDiameterMm: null,
+      lengthM: null,
+      roughnessMm: null,
+      localK: null,
+    },
+    capillaryPipe: {
       innerDiameterMm: 3,
       lengthM: 1,
       roughnessMm: 0,
@@ -126,7 +136,8 @@ test("Excel formula cache matches the JavaScript calculation core", async () => 
     Math.abs(resultOf("B16") - jsResult.main.values.lineLossMpa) < 1e-12
   );
   assert.ok(
-    Math.abs(resultOf("B21") - jsResult.totalVolumeL.value) < 1e-12
+    [undefined, null, ""].includes(resultOf("B21")) &&
+      jsResult.totalVolumeL.value === null
   );
   for (const address of ["B5", "B12", "B16", "B21"]) {
     assert.equal(typeof sheet.getCell(address).value.formula, "string");
@@ -136,7 +147,7 @@ test("Excel formula cache matches the JavaScript calculation core", async () => 
 test("generated topology is a 2400px PNG and current SVG has all points", async () => {
   const png = path.join(
     root,
-    "docs/assets/generated/fertigation-system-topology-v4.png"
+    "docs/assets/generated/fertigation-system-topology-v5.png"
   );
   const metadata = await sharp(png).metadata();
   assert.equal(metadata.width, 2400);
@@ -145,7 +156,7 @@ test("generated topology is a 2400px PNG and current SVG has all points", async 
   const svg = await fs.readFile(
     path.join(
       root,
-      "docs/assets/generated/fertigation-system-topology-v4.svg"
+      "docs/assets/generated/fertigation-system-topology-v5.svg"
     ),
     "utf8"
   );
@@ -156,6 +167,13 @@ test("generated topology is a 2400px PNG and current SVG has all points", async 
   for (const valve of ["MV-END", "MV-SOURCE"]) {
     assert.match(svg, new RegExp(valve));
   }
+  for (const node of ["T1", "T2", "PRV-B", "VENTURI"]) {
+    assert.match(svg, new RegExp(node));
+  }
+  assert.match(svg, /5个节点/);
+  assert.match(svg, /10只PC滴头/);
+  assert.match(svg, /L型二选一/);
+  assert.doesNotMatch(svg, /MV-END[^<]{0,40}中位全关/);
   assert.doesNotMatch(svg, /\bMV-(?:D|S|F|P)\b/);
 });
 

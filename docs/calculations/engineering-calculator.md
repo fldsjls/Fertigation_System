@@ -18,7 +18,7 @@
     </div>
     <div class="calc-toolbar__actions">
       <button type="button" class="calc-button calc-button--primary" data-calc-action="load-current">载入当前设计</button>
-      <button type="button" class="calc-button calc-button--primary" data-calc-action="load-example">载入四滴头算例</button>
+      <button type="button" class="calc-button calc-button--primary" data-calc-action="load-example">载入 v5 十滴头算例</button>
       <button type="button" class="calc-button calc-button--quiet" data-calc-action="import-case">导入工况</button>
       <button type="button" class="calc-button calc-button--quiet" data-calc-action="export-case">导出工况</button>
       <button type="button" class="calc-button calc-button--quiet" data-calc-action="clear">清空工作表</button>
@@ -96,7 +96,7 @@
           <span class="calc-step" aria-hidden="true">02</span>
           <h2 id="calc-pipe-title">管路水力</h2>
         </div>
-        <p>主管按系统总流量计算；代表性毛管按一个滴头流量计算。</p>
+        <p>主管按系统总流量计算；OD12节点支管按每节点2只滴头计算；3/5毛管按一个滴头流量计算。</p>
       </div>
 
       <h3>流体参数</h3>
@@ -157,7 +157,42 @@
         </fieldset>
 
         <fieldset class="calc-fieldset">
-          <legend>代表性毛管</legend>
+          <legend>OD12节点支管（单节点）</legend>
+          <div class="calc-input-grid calc-input-grid--pipe">
+            <label class="calc-field">
+              <span>实际内径</span>
+              <span class="calc-input">
+                <input name="nodeBranchInnerDiameterMm" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+                <span>mm</span>
+              </span>
+              <small>外径固定为12 mm，实际内径按所购厚壁PE管确认。</small>
+            </label>
+            <label class="calc-field">
+              <span>单段长度</span>
+              <span class="calc-input">
+                <input name="nodeBranchLengthM" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+                <span>m</span>
+              </span>
+            </label>
+            <label class="calc-field">
+              <span>绝对粗糙度 <b>ε</b></span>
+              <span class="calc-input">
+                <input name="nodeBranchRoughnessMm" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+                <span>mm</span>
+              </span>
+            </label>
+            <label class="calc-field">
+              <span>局部阻力系数之和 <b>ΣK</b></span>
+              <span class="calc-input">
+                <input name="nodeBranchLocalK" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+                <span>—</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="calc-fieldset">
+          <legend>3/5滴箭毛管（单条）</legend>
           <div class="calc-input-grid calc-input-grid--pipe">
             <label class="calc-field">
               <span>实际内径</span>
@@ -219,7 +254,17 @@
               <td data-pipe-output="main.volume">—</td>
             </tr>
             <tr>
-              <th>代表性毛管</th>
+              <th>OD12节点支管</th>
+              <td data-pipe-output="nodeBranch.velocity">—</td>
+              <td data-pipe-output="nodeBranch.reynolds">—</td>
+              <td data-pipe-output="nodeBranch.friction">—</td>
+              <td data-pipe-output="nodeBranch.lineLoss">—</td>
+              <td data-pipe-output="nodeBranch.localLoss">—</td>
+              <td data-pipe-output="nodeBranch.totalLoss">—</td>
+              <td data-pipe-output="nodeBranch.volume">—</td>
+            </tr>
+            <tr>
+              <th>3/5滴箭毛管</th>
               <td data-pipe-output="lateral.velocity">—</td>
               <td data-pipe-output="lateral.reynolds">—</td>
               <td data-pipe-output="lateral.friction">—</td>
@@ -239,7 +284,7 @@
             <span class="calc-status calc-status--pending">待确认</span>
           </div>
           <output class="calc-result__value">—</output>
-          <p class="calc-result__reason">主管容积 + N × 代表性毛管容积</p>
+          <p class="calc-result__reason">主管 + 5段OD12节点支管 + 10条3/5毛管</p>
         </article>
       </div>
     </section>
@@ -367,12 +412,12 @@
           </span>
         </label>
         <label class="calc-field">
-          <span>MV-END（滴灌位）当前流量压损</span>
+          <span>L 型末端三通（滴灌位）当前流量压损</span>
           <span class="calc-input">
             <input name="dripValveLossMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
             <span>MPa</span>
           </span>
-          <small>8 L/h 边界下须核对最低流量与最小压差。</small>
+          <small>默认 10 只滴头；按当前实际总流量核对阀门通径和压损。</small>
         </label>
         <label class="calc-field">
           <span>倒流防止器压损</span>
@@ -436,12 +481,12 @@
               </span>
             </label>
             <label class="calc-field">
-              <span>文丘里当前工况压损</span>
+              <span>T1/T2压差旁路设计压差</span>
               <span class="calc-input">
-                <input name="venturiLossMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+                <input name="bypassDifferentialMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
                 <span>MPa</span>
               </span>
-              <small>必须来自同一厂家工况或现场 P1-P2。</small>
+              <small>没有动态P1/P2时，才填写已确认的同工况厂家压差；不得与P1-P2重复相加。</small>
             </label>
             <label class="calc-field">
               <span>B 路止回阀压损</span>
@@ -619,6 +664,14 @@
           </span>
         </label>
         <label class="calc-field">
+          <span>现场实测文丘里驱动流量</span>
+          <span class="calc-input">
+            <input name="actualVenturiMotiveLph" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
+            <span>L/h</span>
+          </span>
+          <small>只测文丘里旁路，不能填写10只滴头的末端总流量。</small>
+        </label>
+        <label class="calc-field">
           <span>曲线工况吸液量</span>
           <span class="calc-input">
             <input name="venturiCurveSuctionLph" type="number" min="0" step="any" inputmode="decimal" autocomplete="off">
@@ -716,7 +769,7 @@
           <span class="calc-input"><input name="sprayDownstreamLossMpa" type="number" min="0" step="any" inputmode="decimal" value="0" autocomplete="off"><span>MPa</span></span>
         </label>
         <label class="calc-field">
-          <span>MV-END（喷灌位）当前流量压损</span>
+          <span>L 型末端三通（喷淋位）当前流量压损</span>
           <span class="calc-input"><input name="sprayValveLossMpa" type="number" min="0" step="any" inputmode="decimal" autocomplete="off"><span>MPa</span></span>
         </label>
         <label class="calc-field">
@@ -797,6 +850,7 @@
         <label class="calc-field"><span>喷灌曲线工况 P1</span><span class="calc-input"><input name="sprayVenturiCurveP1Mpa" type="number" min="0" step="any" autocomplete="off"><span>MPa</span></span></label>
         <label class="calc-field"><span>喷灌曲线工况 P2</span><span class="calc-input"><input name="sprayVenturiCurveP2Mpa" type="number" min="0" step="any" autocomplete="off"><span>MPa</span></span></label>
         <label class="calc-field"><span>喷灌曲线驱动流量</span><span class="calc-input"><input name="sprayVenturiCurveMotiveLph" type="number" min="0" step="any" autocomplete="off"><span>L/h</span></span></label>
+        <label class="calc-field"><span>喷药工况实测文丘里驱动流量</span><span class="calc-input"><input name="sprayActualVenturiMotiveLph" type="number" min="0" step="any" autocomplete="off"><span>L/h</span></span></label>
         <label class="calc-field"><span>喷灌曲线吸液量</span><span class="calc-input"><input name="sprayVenturiCurveSuctionLph" type="number" min="0" step="any" autocomplete="off"><span>L/h</span></span></label>
         <label class="calc-field calc-checkbox"><input name="sprayVenturiCurveConfirmed" type="checkbox"><span>已核对喷药工况所用厂家曲线点</span></label>
       </div>

@@ -7,7 +7,7 @@ const ExcelJS = require("exceljs");
 const INPUT_SHEET = "02_工况输入";
 const BASELINE_SHEET = "01_当前设计基准";
 const META_SHEET = "_meta";
-const WORKBOOK_SCHEMA_VERSION = "2.0.0";
+const WORKBOOK_SCHEMA_VERSION = "2.1.0";
 const MANAGED_BASELINE_MARKER = "fertigation-baseline:v2";
 
 function normalizeCellValue(value) {
@@ -75,7 +75,8 @@ function buildCaseFromInputs(values, designRevision) {
     },
     system: {
       emitterCount: numberOrNull(values.emitterCount),
-      emitterFlowLph: numberOrNull(values.emitterFlowLph)
+      emitterFlowLph: numberOrNull(values.emitterFlowLph),
+      emittersPerNode: 2
     },
     spray: {
       nozzleCount: numberOrNull(values.sprayNozzleCount),
@@ -97,7 +98,14 @@ function buildCaseFromInputs(values, designRevision) {
         roughnessMm: numberOrNull(values.mainRoughnessMm),
         localK: numberOrNull(values.mainLocalK)
       },
-      lateral: {
+      nodeBranch: {
+        innerDiameterMm: numberOrNull(values.nodeBranchInnerDiameterMm),
+        outerDiameterMm: numberOrNull(values.nodeBranchOuterDiameterMm),
+        lengthM: numberOrNull(values.nodeBranchLengthM),
+        roughnessMm: numberOrNull(values.nodeBranchRoughnessMm),
+        localK: numberOrNull(values.nodeBranchLocalK)
+      },
+      capillary: {
         innerDiameterMm: numberOrNull(values.lateralInnerDiameterMm),
         outerDiameterMm: numberOrNull(values.lateralOuterDiameterMm),
         lengthM: numberOrNull(values.lateralLengthM),
@@ -137,7 +145,7 @@ function buildCaseFromInputs(values, designRevision) {
       checkALossMpa: numberOrNull(values.checkALossMpa),
       fittingsALossMpa: numberOrNull(values.fittingsALossMpa),
       controllerBLossMpa: numberOrNull(values.controllerBLossMpa),
-      venturiLossMpa: numberOrNull(values.venturiLossMpa),
+      bypassDifferentialMpa: numberOrNull(values.bypassDifferentialMpa),
       checkBLossMpa: numberOrNull(values.checkBLossMpa),
       fittingsBLossMpa: numberOrNull(values.fittingsBLossMpa),
       dripValveLossMpa: numberOrNull(values.dripValveLossMpa),
@@ -159,12 +167,16 @@ function buildCaseFromInputs(values, designRevision) {
       curveP2Mpa: numberOrNull(values.venturiCurveP2Mpa),
       curveMotiveFlowLph: numberOrNull(values.venturiCurveMotiveLph),
       curveSuctionFlowLph: numberOrNull(values.venturiCurveSuctionLph),
+      actualMotiveFlowLph: numberOrNull(values.actualVenturiMotiveLph),
       curvePointConfirmed: booleanValue(values.venturiCurveConfirmed),
       sprayCurve: {
         curveP1Mpa: numberOrNull(values.sprayVenturiCurveP1Mpa),
         curveP2Mpa: numberOrNull(values.sprayVenturiCurveP2Mpa),
         curveMotiveFlowLph: numberOrNull(values.sprayVenturiCurveMotiveLph),
         curveSuctionFlowLph: numberOrNull(values.sprayVenturiCurveSuctionLph),
+        actualMotiveFlowLph: numberOrNull(
+          values.sprayActualVenturiMotiveLph
+        ),
         curvePointConfirmed: booleanValue(values.sprayVenturiCurveConfirmed)
       }
     },
@@ -198,22 +210,26 @@ function buildCaseFromInputs(values, designRevision) {
 function setBaselineValues(sheet, systemData) {
   const mainPipe = systemData.pipes.find((pipe) => pipe.pipe_id === "PIPE-MAIN");
   const lateralPipe = systemData.pipes.find(
-    (pipe) => pipe.pipe_id === "PIPE-LATERAL"
+    (pipe) => pipe.pipe_id === "PIPE-CAPILLARY"
+  );
+  const nodeBranchPipe = systemData.pipes.find(
+    (pipe) => pipe.pipe_id === "PIPE-NODE-BRANCH"
   );
   const filter = systemData.filters[0];
   const rows = [
     ["设计版本", systemData.metadata.design_revision, "来自接口规格工作簿"],
     ["核对日期", systemData.metadata.checked_date, "事实层核对日期"],
-    ["权威拓扑", "水源→倒流防止器→过滤器→A/B互斥→合流→MV-END三通选择滴灌/喷灌", "B路完整串联共用文丘里；MV-SOURCE三通选择肥料/农药"],
+    ["权威拓扑", "水源→倒流防止器→过滤器→A/B互斥→合流→L型三通选择滴灌/喷淋", "B路在T1/T2之间并联减压主路与文丘里旁路；两路同时通水"],
     ["主水路候选接口", "G1/2（俗称4分）", "内牙/外牙及密封待厂家确认"],
     ["测压口候选接口", "G1/4（俗称2分）", "P0–P5端口形式待厂家确认"],
     ["过滤等级", filter ? `${filter.mesh || "—"}目` : "—", filter && filter.nominal_micron ? `${filter.nominal_micron} μm` : "厂家标称微米待确认"],
     ["主管", mainPipe ? `${mainPipe.inner_diameter_mm}/${mainPipe.outer_diameter_mm} mm` : "—", "内径/外径"],
-    ["支管", lateralPipe ? `${lateralPipe.inner_diameter_mm}/${lateralPipe.outer_diameter_mm} mm` : "—", "内径/外径"],
+    ["节点支管", nodeBranchPipe ? `${nodeBranchPipe.inner_diameter_mm || "待确认"}/${nodeBranchPipe.outer_diameter_mm} mm` : "—", "OD12可更换PE支管；5段"],
+    ["滴箭毛管", lateralPipe ? `${lateralPipe.inner_diameter_mm}/${lateralPipe.outer_diameter_mm} mm` : "—", "3/5内径/外径；10条"],
     ["P0", "过滤器后、控制器前", "共用上游动态压力"],
-    ["P1", "文丘里入口前", "B路入口压力"],
-    ["P2", "文丘里出口后、B止回阀前", "与P1计算文丘里压差"],
-    ["P3", "A/B合流后、MV-END入口前", "验证公共段及末端三通选择阀入口压力"],
+    ["P1", "T1公共节点", "减压主路与文丘里旁路共同入口动态压力"],
+    ["P2", "T2公共节点、B止回阀前", "与P1计算T1/T2旁路压差，只计一次"],
+    ["P3", "A/B合流后、L型末端三通入口前", "验证公共段及末端二选一阀入口压力"],
     ["P4", "滴灌减压阀后、滴灌主管前", "验证滴头可用压力"],
     ["P5", "最不利上空喷头入口", "验证喷头工作压力"]
   ];
@@ -293,14 +309,14 @@ function normalizeWorkbookFormulas(workbook, inputSheet) {
   );
   venturiSheet.getCell("B18").value = {
     formula:
-      'IF(B17<>TRUE,"待厂家确认",IF(OR(B5="",B6="",B10="",B11="",C12="",D12="",D13="",D14="",D15="",D16=""),"待确认",IF(OR(B5>B11,B10<C12,B10>D12,B9>D16),"不适用","已计算")))',
+      'IF(B17<>TRUE,"待厂家确认",IF(OR(B5="",B6="",B7="",B10="",B11="",C12="",D12="",D13="",D14="",D15="",D16=""),"待确认",IF(OR(B7<=0,B5>B11,B10<C12,B10>D12,B9>D16),"不适用","已计算")))',
     result: confirmed ? "待确认" : "待厂家确认",
   };
 }
 
 function baselineHash(sheet) {
   const values = [];
-  for (let row = 5; row <= 18; row += 1) {
+  for (let row = 5; row <= 19; row += 1) {
     values.push([
       normalizeCellValue(sheet.getCell(row, 1).value),
       normalizeCellValue(sheet.getCell(row, 2).value),
@@ -422,7 +438,7 @@ async function updateCalculationWorkbook(workbookPath, systemData) {
   loaded.workbook.calcProperties.forceFullCalc = true;
   loaded.workbook.calcProperties.calcMode = "auto";
   loaded.workbook.creator = "Codex";
-  loaded.workbook.modified = new Date("2026-07-24T00:00:00+08:00");
+  loaded.workbook.modified = new Date("2026-07-25T00:00:00+08:00");
   await loaded.workbook.xlsx.writeFile(workbookPath);
   return buildCaseFromInputs(
     readInputMap(loaded.inputSheet),

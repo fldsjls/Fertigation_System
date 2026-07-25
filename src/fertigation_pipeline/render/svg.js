@@ -77,14 +77,13 @@ function renderTopologySvg(systemData, layout) {
   const revision = systemData.metadata.design_revision;
   const main = systemData.pipes.find((pipe) => pipe.pipe_id === "PIPE-MAIN");
   const spray = systemData.pipes.find((pipe) => pipe.pipe_id === "PIPE-SPRAY");
-  const filter = systemData.filters.find((item) => item.component_id === "FILTER");
+  const filter = systemData.filters.find((item) => item.filter_id === "FILTER");
   const filterLabel = filter && filter.mesh ? `${filter.mesh}目` : "等级待确认";
-  const venturi = component(systemData, "VENTURI");
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc">
-  <title id="title">V4 双液源、滴灌与上空喷灌工程拓扑图</title>
-  <desc id="desc">单一水源进入原双路控制器。A路清水旁通，B路全部通过共用文丘里；肥料桶和农药桶经各自过滤、调节和止回阀进入一只三通液源选择阀，再接同一侧吸口。A、B合流后由一只三通末端选择阀切换滴灌或上空喷灌。</desc>
+  <title id="title">V5 双路控制、文丘里压差旁路、滴灌与上空喷淋工程拓扑图</title>
+  <desc id="desc">A路清水直通。B路在T1处分为减压阀主路和文丘里旁路，两路同时有流量并在T2合流。A、B合流后由普通L型三通球阀二选一切换滴灌或上空喷淋。滴灌包含五个OD12可更换支管节点和十只压力补偿滴头，喷淋包含五个喷淋点。</desc>
   <defs>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
       <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#173A5B" flood-opacity="0.13"/>
@@ -111,8 +110,8 @@ function renderTopologySvg(systemData, layout) {
 
   <rect width="${width}" height="${height}" fill="${layout.canvas.background}"/>
   <rect x="30" y="25" width="${width - 60}" height="${height - 50}" rx="24" class="panel" filter="url(#shadow)"/>
-  <text x="68" y="76" class="title">V4 双液源 · 滴灌 / 上空喷灌工程拓扑</text>
-  <text x="70" y="104" class="subtitle">单一水源 · A/B 互斥 · B路完整穿过共用文丘里 · 双液源与双末端均互斥</text>
+  <text x="68" y="76" class="title">V5 双路控制 · 文丘里压差旁路 · 滴灌 / 上空喷淋</text>
+  <text x="70" y="104" class="subtitle">A清水直通｜B路T1/T2之间减压主路＋文丘里旁路同时通水｜L型三通二选一末端</text>
   <rect x="${width - 270}" y="50" width="205" height="40" rx="20" fill="#E3F5EC"/>
   <text x="${width - 168}" y="75" class="tag" text-anchor="middle">设计版本 ${xml(revision)}</text>
 
@@ -124,25 +123,31 @@ function renderTopologySvg(systemData, layout) {
   ${node(605, 220, "A/B双路控制器", "手机控制", "#DCEAF5", 170)}
   ${pressureBadge(systemData, "P0", 505, 166, "过滤器后、控制器前")}
 
-  <text x="70" y="310" class="section" fill="#15965A">02 A 路 · 清水旁路</text>
-  <path d="M585 255 V360 H1185 V420" class="route-a"/>
-  ${valve(915, 360, "CV-A", "#15965A")}
-  <text x="730" y="340" class="small">预灌 / 普通清水 / 冲洗</text>
+  <text x="70" y="310" class="section" fill="#15965A">02 A 路 · 清水直通</text>
+  <path d="M585 255 V350 H1230 V430" class="route-a"/>
+  ${valve(910, 350, "CV-A", "#15965A")}
+  <text x="705" y="330" class="small">清水滴灌 / 清水喷淋 / 前后冲洗</text>
 
-  <text x="70" y="455" class="section" fill="#DC4E54">03 B 路 · 全流量通过共用文丘里</text>
-  <path d="M625 255 V500 H770" class="route-b"/>
-  <path d="M980 500 H1185 V420" class="route-b"/>
-  ${node(875, 500, "共用文丘里", venturi ? "型号待厂家确认" : "型号待确认", "#FFF0F0", 170)}
-  ${valve(1080, 500, "CV-B", "#DC4E54")}
-  ${pressureBadge(systemData, "P1", 755, 455, "文丘里入口")}
-  ${pressureBadge(systemData, "P2", 990, 548, "文丘里出口")}
+  <text x="70" y="435" class="section" fill="#DC4E54">03 B 路 · T1/T2 压差旁路（两支路同时有流量）</text>
+  <path d="M625 255 V505 H755" class="route-b"/>
+  <g transform="translate(775 505)"><circle r="23" fill="#fff" stroke="#DC4E54" stroke-width="7"/><text y="5" class="tag" text-anchor="middle">T1</text></g>
+  <path d="M798 505 H830 V455 H1115 V505" class="route-b"/>
+  ${node(965, 455, "PRV-B｜DN15减压阀", "主路｜制造压差", "#FFF4DD", 190)}
+  <path d="M798 505 H830 V555 H1115 V505" class="route-b"/>
+  ${valve(885, 555, "旁路启闭", "#DC4E54")}
+  ${node(1020, 555, "VENTURI｜4分文丘里", "实际驱动流量须单测", "#FFF0F0", 195)}
+  <g transform="translate(1135 505)"><circle r="23" fill="#fff" stroke="#DC4E54" stroke-width="7"/><text y="5" class="tag" text-anchor="middle">T2</text></g>
+  <path d="M1158 505 H1230 V430" class="route-b"/>
+  ${valve(1195, 505, "CV-B", "#DC4E54")}
+  ${pressureBadge(systemData, "P1", 775, 450, "T1公共节点", "left")}
+  ${pressureBadge(systemData, "P2", 1135, 560, "T2公共节点")}
 
-  <text x="70" y="595" class="section" fill="#C98B16">04 两只独立母液桶 · 三通阀选择后进入同一侧吸口</text>
+  <text x="70" y="630" class="section" fill="#C98B16">04 两只独立母液桶 · 三位液源阀接同一侧吸口</text>
   ${node(135, 660, "肥料桶", "独立容器", "#FFF6DC", 115)}
   ${node(135, 790, "农药桶", "按登记标签", "#F4EAF9", 115)}
   <path d="M192 660 H650 V711 H677" class="suction-f"/>
   <path d="M192 790 H650 V739 H677" class="suction-p"/>
-  <path d="M793 725 H875 V535" class="suction-common" marker-end="url(#arrow-amber)"/>
+  <path d="M793 725 H1020 V590" class="suction-common" marker-end="url(#arrow-amber)"/>
   ${node(275, 660, "过滤头", "肥料专用", "#FFFDF7", 95)}
   ${node(275, 790, "过滤头", "农药专用", "#FCF8FE", 95)}
   ${node(405, 660, "调节阀", "", "#FFFDF7", 95)}
@@ -150,38 +155,44 @@ function renderTopologySvg(systemData, layout) {
   ${valve(545, 660, "CV-F", "#C98B16")}
   ${valve(545, 790, "CV-P", "#8653A6")}
   ${threeWaySelector(735, 725, "MV-SOURCE", "肥料 / 关闭 / 农药", "#6F4A8E", true)}
-  <text x="888" y="585" class="small">同一侧吸口</text>
+  <text x="1028" y="615" class="small">同一文丘里侧吸口</text>
 
-  <g transform="translate(1185 420)"><circle r="25" fill="#fff" stroke="#1F3346" stroke-width="7"/><path d="M-9 0 H9" stroke="#1F3346" stroke-width="5"/><text y="-37" class="tag" text-anchor="middle">A/B合流</text></g>
-  <path d="M1210 420 H1370" class="water" marker-end="url(#arrow-blue)"/>
-  ${pressureBadge(systemData, "P3", 1290, 490, "MV-END 入口前", "left")}
-  ${threeWaySelector(1370, 420, "MV-END", "滴灌 / 关闭 / 喷灌", "#1261A6")}
+  <g transform="translate(1230 430)"><circle r="25" fill="#fff" stroke="#1F3346" stroke-width="7"/><path d="M-9 0 H9" stroke="#1F3346" stroke-width="5"/><text y="-37" class="tag" text-anchor="middle">A/B合流</text></g>
+  <path d="M1255 430 H1410" class="water" marker-end="url(#arrow-blue)"/>
+  ${pressureBadge(systemData, "P3", 1315, 490, "末端L型阀前", "left")}
+  ${threeWaySelector(1410, 430, "MV-END", "L型二选一｜滴灌 / 喷淋｜无关闭位", "#1261A6")}
 
-  <text x="1040" y="590" class="section" fill="#15965A">05 滴灌支路</text>
-  <path d="M1428 406 H1470 V625 H1954" class="route-a"/>
-  ${node(1580, 625, "滴灌减压阀", "原公共阀移入此支路", "#FFF4DD", 166)}
-  ${node(1755, 625, "滴灌主管", pipeSpec(main), "#EAF8F0", 145)}
-  ${pressureBadge(systemData, "P4", 1670, 570, "滴灌减压阀后")}
-  <g transform="translate(1900 635)">
-    <path d="M-54 0 V55 M-18 0 V55 M18 0 V55 M54 0 V55" stroke="#15965A" stroke-width="5"/>
-    <path d="M-64 55 H-44 M-28 55 H-8 M8 55 H28 M44 55 H64" stroke="#1F3346" stroke-width="8" stroke-linecap="round"/>
-    <text y="82" class="small" text-anchor="middle">压力补偿滴头</text>
+  <text x="1210" y="620" class="section" fill="#15965A">05 滴灌：5个节点 · 10只PC滴头</text>
+  <path d="M1468 416 H1500 V655 H1965" class="route-a"/>
+  ${node(1575, 655, "滴灌调压器", "按P3与滴头范围决定", "#FFF4DD", 170)}
+  ${pressureBadge(systemData, "P4", 1665, 605, "滴灌调压后")}
+  ${node(1745, 655, "9/12主管", pipeSpec(main), "#EAF8F0", 145)}
+  <g transform="translate(1815 655)">
+    <path d="M0 0 V105 M38 0 V105 M76 0 V105 M114 0 V105 M152 0 V105" stroke="#15965A" stroke-width="5"/>
+    <circle cx="0" cy="27" r="9" fill="#fff" stroke="#15965A" stroke-width="4"/>
+    <circle cx="38" cy="27" r="9" fill="#fff" stroke="#15965A" stroke-width="4"/>
+    <circle cx="76" cy="27" r="9" fill="#fff" stroke="#15965A" stroke-width="4"/>
+    <circle cx="114" cy="27" r="9" fill="#fff" stroke="#15965A" stroke-width="4"/>
+    <circle cx="152" cy="27" r="9" fill="#fff" stroke="#15965A" stroke-width="4"/>
+    <path d="M-8 105 H8 M30 105 H46 M68 105 H84 M106 105 H122 M144 105 H160" stroke="#1F3346" stroke-width="8" stroke-linecap="round"/>
+    <text x="160" y="132" class="small" text-anchor="end">每节点：12mm等径三通＋球阀＋OD12支管</text>
+    <text x="160" y="151" class="small" text-anchor="end">＋2×PC滴头＋2×3/5毛管＋2×滴箭＋冲洗阀</text>
   </g>
 
-  <text x="1040" y="790" class="section" fill="#1261A6">06 上空喷灌支路</text>
-  <path d="M1428 434 H1440 V835 H1790" class="water" marker-end="url(#arrow-blue)"/>
-  ${node(1560, 835, "喷灌过滤器", "精度待喷头确认", "#EAF2F8", 135)}
-  ${node(1710, 835, "喷灌调压阀", "压力范围待确认", "#FFF4DD", 135)}
-  ${pressureBadge(systemData, "P5", 1935, 820, "最不利喷头", "left")}
-  <path d="M1790 835 H1810 V760 H1940" class="water"/>
-  <path d="M1830 760 V790 M1865 760 V790 M1900 760 V790 M1935 760 V790" stroke="#1261A6" stroke-width="5"/>
-  <path d="M1819 790 H1841 M1854 790 H1876 M1889 790 H1911 M1924 790 H1946" stroke="#1F3346" stroke-width="7" stroke-linecap="round"/>
-  <text x="1870" y="885" class="small" text-anchor="middle">喷灌管：${xml(pipeSpec(spray))}</text>
+  <text x="1210" y="835" class="section" fill="#1261A6">06 上空喷淋：农药路线 · 5个喷淋点</text>
+  <path d="M1468 444 H1490 V890 H1965" class="water" marker-end="url(#arrow-blue)"/>
+  ${node(1570, 890, "喷淋过滤器", "精度待喷头确认", "#EAF2F8", 135)}
+  ${node(1720, 890, "喷淋调压器", "按喷头曲线决定", "#FFF4DD", 145)}
+  ${pressureBadge(systemData, "P5", 1935, 835, "最不利喷头", "left")}
+  <path d="M1800 890 H1960" class="water"/>
+  <path d="M1815 890 V930 M1850 890 V930 M1885 890 V930 M1920 890 V930 M1955 890 V930" stroke="#1261A6" stroke-width="5"/>
+  <path d="M1804 930 H1826 M1839 930 H1861 M1874 930 H1896 M1909 930 H1931 M1944 930 H1966" stroke="#1F3346" stroke-width="7" stroke-linecap="round"/>
+  <text x="1965" y="965" class="small" text-anchor="end">5个喷淋点｜喷淋管：${xml(pipeSpec(spray))}</text>
 
   <rect x="68" y="${height - 160}" width="${width - 136}" height="102" rx="16" fill="#F7FBFF" stroke="#C8D8E8"/>
   <text x="90" y="${height - 125}" class="tag">手动阀位模式：停止｜清水滴灌｜滴灌施肥｜清水喷灌｜上空喷药</text>
-  <text x="90" y="${height - 95}" class="small">当前使用 MV-END 与 MV-SOURCE 两只带中位关闭的三通手动选择阀；手机端仍只控制原 A/B。</text>
-  <text x="90" y="${height - 69}" class="small">边界：喷灌管径与喷头压力必须按喷头总流量计算；文丘里须分别按滴灌施肥与上空喷药两个工况核对厂家曲线。</text>
+  <text x="90" y="${height - 95}" class="small">MV-END 为普通 L 型二选一三通，无关闭位；停机、换向与泄压依靠 A/B 均关。MV-SOURCE 保留肥料 / 关闭 / 农药三位。</text>
+  <text x="90" y="${height - 69}" class="small">边界：P1/P2压差只计一次；滴灌和喷药须分别实测文丘里旁路驱动流量并核对同工况厂家曲线。</text>
 </svg>
 `;
 }

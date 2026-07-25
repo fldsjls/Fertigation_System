@@ -1,20 +1,21 @@
 {
-  "schema_version": "2.0.0",
-  "design_revision": "2026-07-24-v4",
+  "schema_version": "2.1.0",
+  "design_revision": "2026-07-25-v5",
   "scenario": {
-    "name": "4滴头低流量边界",
-    "date": "2026-07-24",
+    "name": "v5十滴头/五喷淋点设计",
+    "date": "2026-07-25",
     "operator": ""
   },
   "mode": {
     "selected": "滴灌施肥"
   },
   "system": {
-    "emitterCount": 4,
-    "emitterFlowLph": 2
+    "emitterCount": 10,
+    "emitterFlowLph": 2,
+    "emittersPerNode": 2
   },
   "spray": {
-    "nozzleCount": null,
+    "nozzleCount": 5,
     "nozzleFlowLph": null,
     "heightDifferenceM": 0,
     "downstreamLossMpa": 0,
@@ -33,7 +34,14 @@
       "roughnessMm": 0,
       "localK": 0
     },
-    "lateral": {
+    "nodeBranch": {
+      "innerDiameterMm": null,
+      "outerDiameterMm": 12,
+      "lengthM": null,
+      "roughnessMm": null,
+      "localK": null
+    },
+    "capillary": {
       "innerDiameterMm": 3,
       "outerDiameterMm": 5,
       "lengthM": 1,
@@ -73,7 +81,7 @@
     "checkALossMpa": null,
     "fittingsALossMpa": null,
     "controllerBLossMpa": null,
-    "venturiLossMpa": null,
+    "bypassDifferentialMpa": null,
     "checkBLossMpa": null,
     "fittingsBLossMpa": null,
     "dripValveLossMpa": null,
@@ -93,12 +101,14 @@
     "curveP2Mpa": null,
     "curveMotiveFlowLph": null,
     "curveSuctionFlowLph": null,
+    "actualMotiveFlowLph": null,
     "curvePointConfirmed": false,
     "sprayCurve": {
       "curveP1Mpa": null,
       "curveP2Mpa": null,
       "curveMotiveFlowLph": null,
       "curveSuctionFlowLph": null,
+      "actualMotiveFlowLph": null,
       "curvePointConfirmed": false
     }
   },

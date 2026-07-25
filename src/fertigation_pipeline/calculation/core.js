@@ -321,40 +321,98 @@
     const systemFlow = calculateSystemFlow(input && input.system);
     const designFlow = systemFlow.designFlowLph.value;
     const emitterFlow = toNumber(input && input.system && input.system.emitterFlowLph);
+    const emitterCount = toNumber(input && input.system && input.system.emitterCount);
+    const emittersPerNodeInput =
+      input && input.system && !isBlank(input.system.emittersPerNode)
+        ? input.system.emittersPerNode
+        : 2;
+    const emittersPerNode = validateNumber(
+      emittersPerNodeInput,
+      "每节点滴头数量",
+      { positive: true, integer: true }
+    );
+    const nodeCount =
+      emittersPerNode.ok &&
+      Number.isFinite(emitterCount) &&
+      Number.isInteger(emitterCount / emittersPerNode.value)
+        ? emitterCount / emittersPerNode.value
+        : null;
     const main = calculatePipe(designFlow, input && input.mainPipe, input && input.water);
-    const lateral = calculatePipe(
-      emitterFlow,
-      input && input.lateralPipe,
+    const nodeBranch = calculatePipe(
+      emittersPerNode.ok && Number.isFinite(emitterFlow)
+        ? emittersPerNode.value * emitterFlow
+        : null,
+      input && input.nodeBranchPipe,
       input && input.water
     );
-    const emitterCount = toNumber(input && input.system && input.system.emitterCount);
+    const capillary = calculatePipe(
+      emitterFlow,
+      (input && input.capillaryPipe) || (input && input.lateralPipe),
+      input && input.water
+    );
+    const nodeConfigurationStatus =
+      nodeCount === null
+        ? Number.isFinite(emitterCount) && emittersPerNode.ok
+          ? STATUS.NOT_APPLICABLE
+          : emittersPerNode.missing
+            ? STATUS.PENDING
+            : STATUS.NOT_APPLICABLE
+        : STATUS.CALCULATED;
     let totalVolumeL = null;
 
     if (
       Number.isFinite(emitterCount) &&
       emitterCount > 0 &&
+      nodeCount !== null &&
       main.values.volumeL !== null &&
-      lateral.values.volumeL !== null
+      nodeBranch.values.volumeL !== null &&
+      capillary.values.volumeL !== null
     ) {
-      totalVolumeL = main.values.volumeL + emitterCount * lateral.values.volumeL;
+      totalVolumeL =
+        main.values.volumeL +
+        nodeCount * nodeBranch.values.volumeL +
+        emitterCount * capillary.values.volumeL;
     }
 
     return {
-      status: combineStatus(systemFlow.status, main.status, lateral.status),
-      reason: [systemFlow.reason, main.reason, lateral.reason]
+      status: combineStatus(
+        systemFlow.status,
+        main.status,
+        nodeBranch.status,
+        capillary.status,
+        nodeConfigurationStatus
+      ),
+      reason: [
+        systemFlow.reason,
+        main.reason,
+        nodeBranch.reason,
+        capillary.reason,
+        nodeCount === null ? "滴头总数必须能按每节点滴头数整除" : "",
+      ]
         .filter(Boolean)
         .join("；"),
       systemFlow: systemFlow,
       main: main,
-      lateral: lateral,
+      nodeBranch: nodeBranch,
+      capillary: capillary,
+      lateral: capillary,
+      nodeCount: makeResult(
+        nodeCount,
+        "个",
+        nodeConfigurationStatus,
+        nodeCount === null
+          ? "滴头总数与每节点滴头数不匹配"
+          : "节点数由滴头总数和每节点滴头数计算",
+        "N节点 = N滴头 / N每节点"
+      ),
       totalVolumeL: makeResult(
         totalVolumeL,
         "L",
         totalVolumeL === null ? STATUS.PENDING : STATUS.CALCULATED,
         totalVolumeL === null
-          ? "需要完整的主管、毛管和滴头数量"
-          : "主管容积加上全部代表性毛管容积",
-        "V总 = V主管 + N × V毛管"
+          ? "需要完整的主管、OD12节点支管、3/5毛管和节点数量"
+          : "主管容积加上全部节点支管和滴箭毛管容积",
+        "V总 = V主管 + N节点 × V节点支管 + N滴头 × V毛管"
       ),
     };
   }
@@ -400,9 +458,21 @@
     const mainLoss = validateNumber(input && input.mainLossMpa, "主管总压损", {
       nonNegative: true,
     });
-    const lateralLoss = validateNumber(
-      input && input.lateralLossMpa,
-      "代表性毛管总压损",
+    const legacySingleBranchLoss =
+      input &&
+      isBlank(input.nodeBranchLossMpa) &&
+      isBlank(input.capillaryLossMpa) &&
+      !isBlank(input.lateralLossMpa);
+    const nodeBranchLoss = validateNumber(
+      legacySingleBranchLoss ? 0 : input && input.nodeBranchLossMpa,
+      "代表性 OD12 节点支管总压损",
+      { nonNegative: true }
+    );
+    const capillaryLoss = validateNumber(
+      input && !isBlank(input.capillaryLossMpa)
+        ? input.capillaryLossMpa
+        : input && input.lateralLossMpa,
+      "代表性 3/5 毛管总压损",
       { nonNegative: true }
     );
     const downstreamLoss = validateNumber(
@@ -417,7 +487,8 @@
     const validation = validationStatus([
       p4,
       mainLoss,
-      lateralLoss,
+      nodeBranchLoss,
+      capillaryLoss,
       downstreamLoss,
       height,
       density,
@@ -432,7 +503,8 @@
     const emitterPressureMpa =
       p4.value -
       mainLoss.value -
-      lateralLoss.value -
+      nodeBranchLoss.value -
+      capillaryLoss.value -
       downstreamLoss.value -
       heightLossMpa;
     const minPressure = validateNumber(
@@ -474,7 +546,7 @@
         "MPa",
         status,
         reason,
-        "P滴头 = P4 - ΔP主管 - ΔP毛管 - ΔP其他 - ρgΔz"
+        "P滴头 = P4 - ΔP主管 - ΔP节点支管 - ΔP毛管 - ΔP其他 - ρgΔz"
       ),
       heightLossMpa: makeResult(
         heightLossMpa,
@@ -589,7 +661,7 @@
       emitterPressureMpa: resultFactory(
         "MPa",
         validation.reason,
-        "P滴头 = P4 - ΔP主管 - ΔP毛管 - ΔP其他 - ρgΔz"
+        "P滴头 = P4 - ΔP主管 - ΔP节点支管 - ΔP毛管 - ΔP其他 - ρgΔz"
       ),
       heightLossMpa: resultFactory(
         "MPa",
@@ -698,9 +770,11 @@
       "控制器 B 路压损",
       { nonNegative: true }
     );
-    const venturi = validateNumber(
-      input && input.venturiLossMpa,
-      "文丘里当前工况压损",
+    const bypassDifferential = validateNumber(
+      input && !isBlank(input.bypassDifferentialMpa)
+        ? input.bypassDifferentialMpa
+        : input && input.venturiLossMpa,
+      "T1/T2 压差旁路当前工况压差",
       { nonNegative: true }
     );
     const checkB = validateNumber(input && input.checkBLossMpa, "B 路止回阀压损", {
@@ -721,13 +795,13 @@
       ]),
       bClean: route("B", "洁净", filterClean, [
         controllerB,
-        venturi,
+        bypassDifferential,
         checkB,
         fittingsB,
       ]),
       bDirty: route("B", "允许堵塞", filterDirty, [
         controllerB,
-        venturi,
+        bypassDifferential,
         checkB,
         fittingsB,
       ]),
@@ -740,9 +814,11 @@
         results.bClean.status,
         results.bDirty.status
       ),
-      reason: "所需压力包含减压阀设定值及其最小工作压差",
+      reason:
+        "端点调压需求计入公共压力预算；B路仅计一次 T1/T2 压差旁路压差",
       results: results,
-      formula: "P源,需 = P减压设定 + ΔP减压阀,min + ΣΔP上游",
+      formula:
+        "P源,需 = P末端调压设定 + ΔP末端调压,min + ΣΔP公共；B路另加(P1-P2)一次",
     };
   }
 
@@ -790,7 +866,7 @@
       (designFlow.value *
         (targetConcentration.value - waterConcentration.value)) /
       (motherConcentration.value - waterConcentration.value);
-    const motiveFlowLph = designFlow.value - targetSuctionLph;
+    const availableCleanWaterFlowLph = designFlow.value - targetSuctionLph;
     const duration = validateNumber(input && input.durationMinutes, "B 路运行时间", {
       positive: true,
     });
@@ -805,7 +881,10 @@
     let motherVolumeL = null;
     let bucketMinimumL = null;
     let status = STATUS.CALCULATED;
-    const reasons = ["目标吸液量和驱动流量已按质量平衡计算"];
+    const reasons = [
+      "目标吸液量已按合流后的总流量和浓度质量平衡计算",
+      "并联压差旁路不能由末端总流量反推文丘里实际驱动流量",
+    ];
 
     if (duration.ok) {
       motherVolumeL = targetSuctionLph * (duration.value / 60);
@@ -844,11 +923,18 @@
         "q吸 = Q设计(C目标-C水)/(C母液-C水)"
       ),
       motiveFlowLph: makeResult(
-        motiveFlowLph,
+        null,
+        "L/h",
+        STATUS.PENDING,
+        "须单独实测文丘里旁路驱动流量，不能把系统总流量或清水余量作为驱动流量",
+        "Q末端 = Q减压主路 + Q文丘里驱动 + q吸"
+      ),
+      availableCleanWaterFlowLph: makeResult(
+        availableCleanWaterFlowLph,
         "L/h",
         STATUS.CALCULATED,
-        "进入文丘里大入口的清水流量",
-        "Q驱动 = Q设计 - q吸"
+        "合流后总流量中除母液以外的清水总量，不等于文丘里旁路驱动流量",
+        "Q清水总量 = Q设计 - q吸"
       ),
       motherVolumeL: makeResult(
         motherVolumeL,
@@ -890,7 +976,12 @@
       motiveFlowLph: factory(
         "L/h",
         validation.reason,
-        "Q驱动 = Q设计 - q吸"
+        "Q末端 = Q减压主路 + Q文丘里驱动 + q吸"
+      ),
+      availableCleanWaterFlowLph: factory(
+        "L/h",
+        validation.reason,
+        "Q清水总量 = Q设计 - q吸"
       ),
       motherVolumeL: factory(
         "L",
@@ -950,9 +1041,15 @@
       actualP2: validateNumber(input && input.actualP2Mpa, "实测 P2", {
         nonNegative: true,
       }),
-      motive: validateNumber(input && input.motiveFlowLph, "目标驱动流量", {
+      motive: validateNumber(
+        input && !isBlank(input.actualMotiveFlowLph)
+          ? input.actualMotiveFlowLph
+          : input && input.motiveFlowLph,
+        "实测文丘里驱动流量",
+        {
         positive: true,
-      }),
+        }
+      ),
       targetSuction: validateNumber(
         input && input.targetSuctionLph,
         "目标吸液量",
@@ -987,7 +1084,7 @@
         numeric.motive.value > numeric.maxMotive.value
       ) {
         status = STATUS.NOT_APPLICABLE;
-        reason = "目标驱动流量超出厂家允许范围";
+        reason = "实测文丘里驱动流量超出厂家允许范围";
       } else if (
         input &&
         input.curvePointConfirmed &&
@@ -997,7 +1094,7 @@
         reason = "所选厂家工况吸液量低于目标值";
       } else if (!(input && input.curvePointConfirmed)) {
         status = STATUS.PENDING;
-        reason = "尚未确认所选厂家工况适用于当前 P1/P2 和驱动流量";
+        reason = "尚未确认所选厂家工况适用于当前 P1/P2 和实测驱动流量";
       } else {
         status = STATUS.CALCULATED;
         reason = "资料校核条件齐全；仍需现场清水验证，不能视为验收通过";
@@ -1035,8 +1132,8 @@
         numeric.motive.ok && numeric.curveMotive.ok
           ? STATUS.CALCULATED
           : status,
-        "正值表示目标驱动流量高于所选曲线工况",
-        "ΔQ驱动 = Q驱动,目标 - Q驱动,曲线"
+        "正值表示实测驱动流量高于所选曲线工况",
+        "ΔQ驱动 = Q驱动,实测 - Q驱动,曲线"
       ),
       suctionMarginLph: makeResult(
         difference(numeric.curveSuction, numeric.targetSuction),
@@ -1163,7 +1260,7 @@
   const MODE_CONTRACTS = Object.freeze({
     停止: Object.freeze({
       controllerProgram: "A/B均关",
-      selectors: Object.freeze({ endpoint: "关闭", source: "关闭" }),
+      selectors: Object.freeze({ endpoint: "保持原位", source: "关闭" }),
       purpose: "检修、换液",
     }),
     清水滴灌: Object.freeze({
@@ -1190,10 +1287,14 @@
 
   function validateSelectorState(state) {
     const values = state || {};
-    const endpoint = values.endpoint || "关闭";
+    const endpoint = values.endpoint || "保持原位";
     const source = values.source || "关闭";
-    if (!["关闭", "滴灌", "喷灌"].includes(endpoint)) {
-      return invalidResult("", "末端三通选择阀位置无效", "MV-END = 关闭 / 滴灌 / 喷灌");
+    if (!["保持原位", "滴灌", "喷灌"].includes(endpoint)) {
+      return invalidResult(
+        "",
+        "末端 L 型三通球阀位置无效",
+        "MV-END = 滴灌 / 喷灌；停机时可保持原位"
+      );
     }
     if (!["关闭", "肥料", "农药"].includes(source)) {
       return invalidResult("", "吸液三通选择阀位置无效", "MV-SOURCE = 关闭 / 肥料 / 农药");
@@ -1204,15 +1305,19 @@
     if (source === "肥料" && endpoint !== "滴灌") {
       return invalidResult("", "禁止肥料进入喷灌支路", "MV-SOURCE=肥料 → MV-END=滴灌");
     }
-    if (endpoint === "关闭" && source !== "关闭") {
-      return invalidResult("", "末端关闭时吸液选择阀也必须关闭", "MV-END=关闭 → MV-SOURCE=关闭");
+    if (endpoint === "保持原位" && source !== "关闭") {
+      return invalidResult(
+        "",
+        "停机保持原末端位置时液源选择阀必须关闭",
+        "A/B均关且 MV-SOURCE=关闭"
+      );
     }
     return makeResult(
       1,
       "",
       STATUS.CALCULATED,
-      "两只三通选择阀的位置满足液源与末端约束",
-      "MV-END 与 MV-SOURCE 均为单选三位阀"
+      "末端 L 型二选一三通与三位液源选择阀满足液源/末端约束",
+      "MV-END = 滴灌 / 喷灌；MV-SOURCE = 肥料 / 关闭 / 农药"
     );
   }
 
@@ -1238,6 +1343,62 @@
       controllerProgram: contract.controllerProgram,
       selectors: contract.selectors,
       purpose: contract.purpose,
+    };
+  }
+
+  function migrateCalculationCase(calculationCase) {
+    if (!calculationCase) {
+      throw new Error("工况JSON为空。");
+    }
+    if (calculationCase.schema_version === "2.1.0") {
+      return calculationCase;
+    }
+    if (calculationCase.schema_version !== "2.0.0") {
+      throw new Error("工况JSON版本不受支持。");
+    }
+    const oldPipes = calculationCase.pipes || {};
+    const oldLosses = calculationCase.component_losses || {};
+    const oldVenturi = calculationCase.venturi || {};
+    const oldSprayCurve = oldVenturi.sprayCurve || {};
+    return {
+      ...calculationCase,
+      schema_version: "2.1.0",
+      system: {
+        ...(calculationCase.system || {}),
+        emittersPerNode: 2,
+      },
+      pipes: {
+        ...oldPipes,
+        nodeBranch: {
+          innerDiameterMm: null,
+          outerDiameterMm: 12,
+          lengthM: null,
+          roughnessMm: null,
+          localK: null,
+        },
+        capillary: oldPipes.capillary || oldPipes.lateral || {
+          innerDiameterMm: 3,
+          outerDiameterMm: 5,
+          lengthM: null,
+          roughnessMm: null,
+          localK: null,
+        },
+      },
+      component_losses: {
+        ...oldLosses,
+        bypassDifferentialMpa:
+          oldLosses.bypassDifferentialMpa ??
+          oldLosses.venturiLossMpa ??
+          null,
+      },
+      venturi: {
+        ...oldVenturi,
+        actualMotiveFlowLph: null,
+        sprayCurve: {
+          ...oldSprayCurve,
+          actualMotiveFlowLph: null,
+        },
+      },
     };
   }
 
@@ -1295,5 +1456,6 @@
     calculateUniformity: calculateUniformity,
     calculateModeContract: calculateModeContract,
     validateSelectorState: validateSelectorState,
+    migrateCalculationCase: migrateCalculationCase,
   });
 });

@@ -93,6 +93,22 @@ const SHEETS = Object.freeze({
       "资料来源": "source",
       "备注": "notes"
     }
+  },
+  procurement_items: {
+    name: "采购清单",
+    headerRow: 4,
+    columns: {
+      "物料ID": "item_id",
+      "类别": "category",
+      "名称": "name",
+      "规格": "specification",
+      "设计数量": "design_quantity",
+      "建议购买量": "purchase_quantity",
+      "单位": "unit",
+      "状态": "status",
+      "数量依据": "basis",
+      "备注": "notes"
+    }
   }
 });
 
@@ -223,6 +239,12 @@ function validateSystemData(data, rules) {
   validateUnique(data.connections, "connection_id", "连接关系", errors);
   validateUnique(data.measurement_points, "point_id", "测点", errors);
   validateUnique(data.pipes, "pipe_id", "管材", errors);
+  validateUnique(
+    data.procurement_items || [],
+    "item_id",
+    "采购清单",
+    errors
+  );
 
   const portsById = new Map(data.ports.map((port) => [port.port_id, port]));
 
@@ -317,6 +339,26 @@ function validateSystemData(data, rules) {
       warnings.push(
         `过滤器 ${filter.filter_id} 已填写 ${filter.mesh} 目，但厂家标称微米仍待确认。`
       );
+    }
+  }
+
+  const procurementStatuses = new Set([
+    "确定",
+    "待现场测量",
+    "待厂家确认",
+    "可选",
+  ]);
+  for (const item of data.procurement_items || []) {
+    if (!procurementStatuses.has(item.status)) {
+      errors.push(
+        `采购项 ${item.item_id} 的状态无效：${item.status || "空"}。`
+      );
+    }
+    if (
+      item.status === "确定" &&
+      (item.design_quantity === null || item.purchase_quantity === null)
+    ) {
+      errors.push(`确定采购项 ${item.item_id} 必须填写设计数量和建议购买量。`);
     }
   }
 
@@ -430,7 +472,8 @@ async function loadInterfaceWorkbook(workbookPath, rules) {
     connections: readDataSheet(workbook, SHEETS.connections),
     measurement_points: readDataSheet(workbook, SHEETS.measurement_points),
     pipes: readDataSheet(workbook, SHEETS.pipes),
-    filters: readDataSheet(workbook, SHEETS.filters)
+    filters: readDataSheet(workbook, SHEETS.filters),
+    procurement_items: readDataSheet(workbook, SHEETS.procurement_items)
   };
   const validation = validateSystemData(data, rules);
   if (validation.errors.length) {
@@ -444,7 +487,8 @@ async function loadInterfaceWorkbook(workbookPath, rules) {
     connections: data.connections.map(({ adapter, ...connection }) => connection),
     measurement_points: data.measurement_points,
     pipes: data.pipes,
-    filters: data.filters
+    filters: data.filters,
+    procurement_items: data.procurement_items
   });
   return data;
 }

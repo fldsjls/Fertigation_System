@@ -14,9 +14,9 @@ function closeTo(actual, expected, tolerance, message) {
   );
 }
 
-test("four-emitter example matches the documented transparent calculation", () => {
+test("ten-emitter v5 example separates main, node branch, and capillary", () => {
   const result = calculator.calculateHydraulics({
-    system: { emitterCount: 4, emitterFlowLph: 2 },
+    system: { emitterCount: 10, emitterFlowLph: 2, emittersPerNode: 2 },
     water: water20C,
     mainPipe: {
       innerDiameterMm: 9,
@@ -24,7 +24,13 @@ test("four-emitter example matches the documented transparent calculation", () =
       roughnessMm: 0,
       localK: 0,
     },
-    lateralPipe: {
+    nodeBranchPipe: {
+      innerDiameterMm: 9,
+      lengthM: 1,
+      roughnessMm: 0,
+      localK: 0,
+    },
+    capillaryPipe: {
       innerDiameterMm: 3,
       lengthM: 1,
       roughnessMm: 0,
@@ -33,17 +39,52 @@ test("four-emitter example matches the documented transparent calculation", () =
   });
 
   assert.equal(result.status, calculator.STATUS.CALCULATED);
-  assert.equal(result.systemFlow.designFlowLph.value, 8);
-  closeTo(result.main.values.velocityMs, 0.03493, 0.00001, "main velocity");
-  closeTo(result.main.values.lineLossMpa, 0.0001386, 0.000001, "main loss");
-  closeTo(result.lateral.values.velocityMs, 0.07860, 0.00001, "lateral velocity");
+  assert.equal(result.systemFlow.designFlowLph.value, 20);
+  assert.equal(result.nodeCount.value, 5);
+  closeTo(result.main.values.velocityMs, 0.08733, 0.00001, "main velocity");
   closeTo(
-    result.lateral.values.lineLossMpa,
+    result.nodeBranch.values.velocityMs,
+    0.01747,
+    0.00001,
+    "two-emitter node-branch velocity"
+  );
+  closeTo(result.capillary.values.velocityMs, 0.07860, 0.00001, "capillary velocity");
+  closeTo(
+    result.capillary.values.lineLossMpa,
     0.0002801,
     0.000001,
-    "lateral loss"
+    "capillary loss"
   );
-  closeTo(result.totalVolumeL.value, 0.6644, 0.001, "total pipe volume");
+  closeTo(result.totalVolumeL.value, 1.0249, 0.001, "total pipe volume");
+});
+
+test("missing OD12 node branch parameters keep the v5 hydraulic result pending", () => {
+  const result = calculator.calculateHydraulics({
+    system: { emitterCount: 10, emitterFlowLph: 2, emittersPerNode: 2 },
+    water: water20C,
+    mainPipe: {
+      innerDiameterMm: 9,
+      lengthM: 10,
+      roughnessMm: 0,
+      localK: 0,
+    },
+    nodeBranchPipe: {
+      innerDiameterMm: null,
+      lengthM: null,
+      roughnessMm: null,
+      localK: null,
+    },
+    capillaryPipe: {
+      innerDiameterMm: 3,
+      lengthM: 1,
+      roughnessMm: 0,
+      localK: 0,
+    },
+  });
+
+  assert.equal(result.status, calculator.STATUS.PENDING);
+  assert.equal(result.totalVolumeL.value, null);
+  assert.equal(result.nodeCount.value, 5);
 });
 
 test("turbulent pipe uses Swamee-Jain and transition flow stays pending", () => {
@@ -94,7 +135,8 @@ test("emitter pressure handles positive and negative elevation", () => {
   const base = {
     p4Mpa: 0.15,
     mainLossMpa: 0.01,
-    lateralLossMpa: 0.005,
+    nodeBranchLossMpa: 0.003,
+    capillaryLossMpa: 0.002,
     downstreamLossMpa: 0.002,
     densityKgM3: 1000,
     emitterMinPressureMpa: 0.05,
@@ -183,7 +225,7 @@ test("pressure budget covers clean and dirty filters and detects negative margin
     checkALossMpa: 0.005,
     fittingsALossMpa: 0.005,
     controllerBLossMpa: 0.02,
-    venturiLossMpa: 0.08,
+    bypassDifferentialMpa: 0.08,
     checkBLossMpa: 0.005,
     fittingsBLossMpa: 0.005,
   });
@@ -203,7 +245,7 @@ test("pressure budget covers clean and dirty filters and detects negative margin
     checkALossMpa: 0.005,
     fittingsALossMpa: 0.005,
     controllerBLossMpa: 0.02,
-    venturiLossMpa: 0.08,
+    bypassDifferentialMpa: 0.08,
     checkBLossMpa: 0.005,
     fittingsBLossMpa: 0.005,
   });
@@ -226,7 +268,14 @@ test("fertigation mass balance calculates suction, volume, and bucket minimum", 
 
   assert.equal(result.status, calculator.STATUS.CALCULATED);
   closeTo(result.targetSuctionLph.value, 2, 1e-12, "target suction");
-  closeTo(result.motiveFlowLph.value, 98, 1e-12, "motive flow");
+  assert.equal(result.motiveFlowLph.value, null);
+  assert.equal(result.motiveFlowLph.status, calculator.STATUS.PENDING);
+  closeTo(
+    result.availableCleanWaterFlowLph.value,
+    98,
+    1e-12,
+    "clean-water mass-balance remainder"
+  );
   closeTo(result.motherVolumeL.value, 1, 1e-12, "mother volume");
   closeTo(result.bucketMinimumL.value, 1.5, 1e-12, "bucket minimum");
   closeTo(result.measuredDifferenceLph.value, 0.1, 1e-12, "measured delta");
@@ -276,7 +325,7 @@ test("venturi stays pending without confirmation and rejects hard limits", () =>
     curveSuctionFlowLph: 5,
     actualP1Mpa: 0.3,
     actualP2Mpa: 0.15,
-    motiveFlowLph: 100,
+    actualMotiveFlowLph: 100,
     targetSuctionLph: 4,
   };
 
@@ -292,7 +341,7 @@ test("venturi stays pending without confirmation and rejects hard limits", () =>
 
   const outsideRange = calculator.calculateVenturi({
     ...base,
-    motiveFlowLph: 50,
+    actualMotiveFlowLph: 50,
     curvePointConfirmed: true,
   });
   assert.equal(outsideRange.status, calculator.STATUS.NOT_APPLICABLE);
@@ -303,6 +352,46 @@ test("venturi stays pending without confirmation and rejects hard limits", () =>
     curvePointConfirmed: true,
   });
   assert.equal(insufficientSuction.status, calculator.STATUS.NOT_APPLICABLE);
+});
+
+test("venturi rejects non-positive pressure differential and stays pending without actual motive flow", () => {
+  const base = {
+    model: "示例型号",
+    sourceReference: "厂家曲线",
+    maxPressureMpa: 0.5,
+    minMotiveFlowLph: 80,
+    maxMotiveFlowLph: 150,
+    curveP1Mpa: 0.3,
+    curveP2Mpa: 0.15,
+    curveMotiveFlowLph: 100,
+    curveSuctionFlowLph: 5,
+    targetSuctionLph: 4,
+    curvePointConfirmed: true,
+  };
+
+  const invalidDifferential = calculator.calculateVenturi({
+    ...base,
+    actualP1Mpa: 0.15,
+    actualP2Mpa: 0.15,
+    actualMotiveFlowLph: 100,
+  });
+  assert.equal(invalidDifferential.status, calculator.STATUS.NOT_APPLICABLE);
+
+  const missingMotive = calculator.calculateVenturi({
+    ...base,
+    actualP1Mpa: 0.3,
+    actualP2Mpa: 0.15,
+  });
+  assert.equal(missingMotive.status, calculator.STATUS.PENDING);
+
+  const missingCurveConfirmation = calculator.calculateVenturi({
+    ...base,
+    actualP1Mpa: 0.3,
+    actualP2Mpa: 0.15,
+    actualMotiveFlowLph: 100,
+    curvePointConfirmed: false,
+  });
+  assert.equal(missingCurveConfirmation.status, calculator.STATUS.PENDING);
 });
 
 test("invalid venturi numbers are not hidden by missing text metadata", () => {
@@ -356,9 +445,9 @@ test("uniformity validates sample count and positive measurements", () => {
   );
 });
 
-test("five modes map to two three-way selector positions and forbidden pairings are rejected", () => {
+test("five modes map to an L-port endpoint selector and forbidden pairings are rejected", () => {
   const expected = {
-    停止: { endpoint: "关闭", source: "关闭" },
+    停止: { endpoint: "保持原位", source: "关闭" },
     清水滴灌: { endpoint: "滴灌", source: "关闭" },
     滴灌施肥: { endpoint: "滴灌", source: "肥料" },
     清水喷灌: { endpoint: "喷灌", source: "关闭" },
@@ -382,7 +471,40 @@ test("five modes map to two three-way selector positions and forbidden pairings 
     calculator.STATUS.NOT_APPLICABLE
   );
   assert.equal(
-    calculator.validateSelectorState({ endpoint: "关闭", source: "肥料" }).status,
+    calculator.validateSelectorState({ endpoint: "保持原位", source: "肥料" }).status,
     calculator.STATUS.NOT_APPLICABLE
   );
+});
+
+test("schema 2.0 cases migrate lateral data to v2.1 capillary fields", () => {
+  const migrated = calculator.migrateCalculationCase({
+    schema_version: "2.0.0",
+    system: { emitterCount: 4, emitterFlowLph: 2 },
+    pipes: {
+      main: { innerDiameterMm: 9, outerDiameterMm: 12 },
+      lateral: {
+        innerDiameterMm: 3,
+        outerDiameterMm: 5,
+        lengthM: 1,
+        roughnessMm: 0,
+        localK: 0,
+      },
+    },
+    component_losses: { venturiLossMpa: 0.08 },
+    venturi: {
+      sprayCurve: {
+        curveP1Mpa: 0.3,
+        curveP2Mpa: 0.15,
+      },
+    },
+  });
+
+  assert.equal(migrated.schema_version, "2.1.0");
+  assert.equal(migrated.system.emittersPerNode, 2);
+  assert.equal(migrated.pipes.nodeBranch.outerDiameterMm, 12);
+  assert.equal(migrated.pipes.nodeBranch.innerDiameterMm, null);
+  assert.deepEqual(migrated.pipes.capillary, migrated.pipes.lateral);
+  assert.equal(migrated.component_losses.bypassDifferentialMpa, 0.08);
+  assert.equal(migrated.venturi.actualMotiveFlowLph, null);
+  assert.equal(migrated.venturi.sprayCurve.actualMotiveFlowLph, null);
 });

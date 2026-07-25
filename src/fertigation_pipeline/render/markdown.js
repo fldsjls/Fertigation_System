@@ -41,7 +41,7 @@ function renderMeasurementPoints(systemData) {
 ${rows}
 
 !!! note "测压顺序"
-    先记录公共段 P0、P3，再按末端分别记录滴灌 P4 或喷灌最不利端 P5。文丘里必须分两次验算：滴灌施肥工况记录 P1/P2，喷药工况再记录 P1/P2；实测压差均为 \`ΔP文丘里 = P1 - P2\`。静态压力不能代替运行时读数。
+    先记录公共段 P0、P3，再按末端分别记录滴灌 P4 或喷灌最不利端 P5。P1 位于 T1，P2 位于 T2，两点跨接减压主路和文丘里旁路；滴灌施肥与喷药工况分别记录 P1/P2、文丘里实际驱动流量和吸液量。实测压差均为 \`ΔP旁路 = P1 - P2\`，同一压差不得重复计作文丘里损失与减压阀损失。静态压力不能代替运行时读数。
 `;
 }
 
@@ -110,8 +110,11 @@ ${systemData.filters
 
 function renderDesignSummary(systemData, calculationCase) {
   const main = systemData.pipes.find((pipe) => pipe.pipe_id === "PIPE-MAIN");
-  const lateral = systemData.pipes.find(
-    (pipe) => pipe.pipe_id === "PIPE-LATERAL"
+  const nodeBranch = systemData.pipes.find(
+    (pipe) => pipe.pipe_id === "PIPE-NODE-BRANCH"
+  );
+  const capillary = systemData.pipes.find(
+    (pipe) => pipe.pipe_id === "PIPE-CAPILLARY"
   );
   const spray = systemData.pipes.find(
     (pipe) => pipe.pipe_id === "PIPE-SPRAY"
@@ -130,12 +133,53 @@ function renderDesignSummary(systemData, calculationCase) {
 | 主水路接口 | G1/2（俗称4分） | 内牙、外牙及密封待厂家确认 |
 | P0–P5测压口 | G1/4（俗称2分） | 测压三通形式待厂家确认 |
 | 主管 | ${main ? `${main.inner_diameter_mm}/${main.outer_diameter_mm} mm（内/外径）` : "—"} | ${main ? statusMark(main.status) : "—"} |
-| 支管 | ${lateral ? `${lateral.inner_diameter_mm}/${lateral.outer_diameter_mm} mm（内/外径）` : "—"} | ${lateral ? statusMark(lateral.status) : "—"} |
+| 可更换滴头支管 | ${nodeBranch ? `${md(nodeBranch.inner_diameter_mm)}/${md(nodeBranch.outer_diameter_mm)} mm（内/外径）` : "—"} | ${nodeBranch ? statusMark(nodeBranch.status) : "—"} |
+| 滴箭毛管 | ${capillary ? `${capillary.inner_diameter_mm}/${capillary.outer_diameter_mm} mm（内/外径）` : "—"} | ${capillary ? statusMark(capillary.status) : "—"} |
 | 喷灌主管/立管 | ${spray && spray.inner_diameter_mm ? `${spray.inner_diameter_mm}/${spray.outer_diameter_mm} mm（内/外径）` : "待按喷头总流量计算"} | 不得直接套用现有9/12管 |
 | 过滤等级 | ${filter ? `${filter.mesh}目` : "—"} | 厂家标称微米待确认 |
 | 液源选择 | MV-SOURCE：肥料 / 关闭 / 农药 | 一只带中位全关的三通手动选择阀，双桶独立 |
-| 末端选择 | MV-END：滴灌 / 关闭 / 上空喷灌 | 一只带中位全关的三通手动选择阀；水力验收后再升级电控 |
-| 低流量边界工况 | ${md(emitterCount)} × ${md(emitterFlow)} L/h = ${md(designFlow)} L/h | 仅用于警示，不证明文丘里适用 |
+| 末端选择 | MV-END：滴灌 / 上空喷淋 | 普通 L 型二选一三通球阀，无关闭位；停机依靠 A/B 均关 |
+| 滴灌节点 | 5 个节点 × 每节点 2 只 PC 滴头 | 共 10 只 PC 滴头；不是 10 只减压阀 |
+| 滴灌设计流量 | ${md(emitterCount)} × ${md(emitterFlow)} L/h = ${md(designFlow)} L/h | 仅用于末端需求；文丘里实际驱动流量须单独测量 |
+| 喷淋点 | ${md(calculationCase.spray.nozzleCount)} 个 | 单喷头流量和喷淋管径待厂家确认 |
+`;
+}
+
+function procurementStatusMark(status) {
+  if (status === "确定") {
+    return "✅ 确定";
+  }
+  if (status === "待现场测量") {
+    return "🟠 待现场测量";
+  }
+  if (status === "可选") {
+    return "⚪ 可选";
+  }
+  return "🟡 待厂家确认";
+}
+
+function renderProcurementList(systemData) {
+  const rows = systemData.procurement_items
+    .map(
+      (item) =>
+        `| ${md(item.category)} | ${md(item.name)} | ${md(item.specification)} | ${md(item.design_quantity)} | ${md(item.purchase_quantity)} | ${md(item.unit)} | ${procurementStatusMark(item.status)} | ${md(item.basis)} | ${md(item.notes)} |`
+    )
+    .join("\n");
+  return `<!-- 此文件由 npm run data:sync 生成，请勿手工修改。 -->
+
+# v5 设备、管道与连接件采购清单
+
+> 设计版本：${md(systemData.metadata.design_revision)}
+> 固定基准：5 个滴灌节点、10 只 PC 压力补偿滴头、5 个喷淋点
+
+!!! warning "数量边界"
+    “确定”表示拓扑数量已经锁定，不代表牙型、材料或厂家型号已经通过采购确认。螺纹内外牙、密封面、喷头流量、喷淋管径、OD12 支管内径和现场管长仍须在下单前逐件核对。
+
+| 类别 | 名称 | 规格 | 设计数量 | 建议购买量 | 单位 | 状态 | 数量依据 | 备注 |
+|---|---|---|---:|---:|---|---|---|---|
+${rows}
+
+“10 只压力调节件”在本设计中指 10 只 PC 压力补偿滴头。B 路压差旁路只设置 1 只 DN15 减压阀；滴灌和喷淋下游调压器均按实测压力及所购末端厂家范围决定，不计入已确认购买量。
 `;
 }
 
@@ -143,6 +187,7 @@ module.exports = {
   renderDesignSummary,
   renderInterfaceSchedule,
   renderMeasurementPoints,
+  renderProcurementList,
   statusMark,
   threadSpec
 };

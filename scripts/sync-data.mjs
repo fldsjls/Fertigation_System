@@ -16,6 +16,7 @@ const {
   renderDesignSummary,
   renderInterfaceSchedule,
   renderMeasurementPoints,
+  renderProcurementList,
 } = require("../src/fertigation_pipeline/render/markdown.js");
 const {
   renderTopologySvg,
@@ -46,6 +47,7 @@ const paths = {
   ),
   generatedDocs: path.join(root, "docs/_generated"),
   referenceSchedule: path.join(root, "docs/reference/interface-schedule.md"),
+  procurementList: path.join(root, "docs/reference/procurement-list.md"),
   generatedAssets: path.join(root, "docs/assets/generated"),
   publicCase: path.join(
     root,
@@ -119,15 +121,19 @@ async function synchronize() {
     paths.referenceSchedule,
     renderInterfaceSchedule(systemData)
   );
+  await writeText(
+    paths.procurementList,
+    renderProcurementList(systemData)
+  );
 
   const svg = renderTopologySvg(systemData, layout);
   const svgPath = path.join(
     paths.generatedAssets,
-    "fertigation-system-topology-v4.svg"
+    "fertigation-system-topology-v5.svg"
   );
   const pngPath = path.join(
     paths.generatedAssets,
-    "fertigation-system-topology-v4.png"
+    "fertigation-system-topology-v5.png"
   );
   await writeText(svgPath, svg);
   await fs.mkdir(path.dirname(pngPath), { recursive: true });

@@ -15,6 +15,7 @@ const {
   renderDesignSummary,
   renderInterfaceSchedule,
   renderMeasurementPoints,
+  renderProcurementList,
 } = require("../src/fertigation_pipeline/render/markdown.js");
 const {
   renderTopologySvg,
@@ -108,14 +109,18 @@ async function verify() {
     renderInterfaceSchedule(systemData)
   );
   await assertEqualFile(
-    "docs/assets/generated/fertigation-system-topology-v4.svg",
+    "docs/reference/procurement-list.md",
+    renderProcurementList(systemData)
+  );
+  await assertEqualFile(
+    "docs/assets/generated/fertigation-system-topology-v5.svg",
     renderTopologySvg(systemData, layout)
   );
 
   const pngMetadata = await sharp(
     path.join(
       root,
-      "docs/assets/generated/fertigation-system-topology-v4.png"
+      "docs/assets/generated/fertigation-system-topology-v5.png"
     )
   ).metadata();
   if (pngMetadata.width !== 2400 || pngMetadata.format !== "png") {
@@ -165,7 +170,7 @@ async function verify() {
   }
 
   process.stdout.write(
-    `GENERATED_OK revision=${systemData.metadata.design_revision} files=11\n`
+    `GENERATED_OK revision=${systemData.metadata.design_revision} files=12\n`
   );
 }
 
