@@ -1,5 +1,5 @@
-site_name: V4 双液源水肥药一体化系统文档
-site_description: 双液源、滴灌/上空喷灌、共用文丘里、两只三通选择阀、工程计算与清水调试
+site_name: V5 双液源压差旁路水肥药系统文档
+site_description: A/B互斥、T1/T2压差旁路、五节点滴灌、五点喷淋、工程计算与清水调试
 docs_dir: docs
 site_dir: site
 exclude_docs: |
@@ -60,11 +60,13 @@ nav:
       - A/B 程序与手动阀位: operations/controller-program.md
       - 故障诊断: operations/troubleshooting.md
   - 参考:
+      - 自动生成采购清单: reference/procurement-list.md
       - 接口、牙型与管径清单: reference/interface-schedule.md
       - 资料来源与厂家数据: reference/sources.md
-      - 程序路径与生成流程: reference/program-structure.md
+      - 文件夹结构与边界约定: reference/program-structure.md
   - ADR:
       - 决策索引: adr/index.md
       - 0001 双路互斥与 B 路串联文丘里: adr/0001-dual-route-inline-venturi.md
       - 0002 双液源、双末端与现场模式: adr/0002-dual-liquid-dual-endpoint.md
       - 0003 三通选择阀简化: adr/0003-three-way-selector-valves.md
+      - 0004 压差旁路与 L 型末端阀: adr/0004-pressure-differential-bypass-v5.md

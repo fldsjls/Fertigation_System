@@ -1,0 +1,318 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1200" viewBox="0 0 2000 1200" role="img" aria-labelledby="title desc">
+  <title id="title">4分文丘里与减压阀压差旁路候选图例</title>
+  <desc id="desc">自来水经过倒流防护和过滤后，在P1处分为减压阀主路与4分文丘里旁路，两路在P2后合流，再由末端三通选择喷淋或滴灌。肥料和农药各用一条吸液管，经一只三通液源选择阀接入文丘里。P4后的9/12快插主管保持原径，每盆经12转8变径三通、8毫米短管、8快插转4毫米倒刺、4/7支路、压力补偿滴头、3/5毛细管和滴箭独立取水。</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#edf3f8"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#159f83"/>
+    </linearGradient>
+    <linearGradient id="venturi" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f97316"/>
+      <stop offset="0.5" stop-color="#c2410c"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#16324a" flood-opacity=".12"/>
+    </filter>
+    <marker id="arrowGreen" markerWidth="18" markerHeight="18" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 12 12">
+      <path d="M0,0 L12,6 L0,12 z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="18" markerHeight="18" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 12 12">
+      <path d="M0,0 L12,6 L0,12 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="18" markerHeight="18" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 12 12">
+      <path d="M0,0 L12,6 L0,12 z" fill="#ea580c"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="18" markerHeight="18" refX="11" refY="6" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 12 12">
+      <path d="M0,0 L12,6 L0,12 z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      text { font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #17324d; }
+      .title { font-size: 48px; font-weight: 800; letter-spacing: 1px; }
+      .subtitle { font-size: 24px; fill: #577187; }
+      .section { font-size: 27px; font-weight: 800; }
+      .label { font-size: 24px; font-weight: 700; }
+      .small { font-size: 20px; fill: #536b7e; }
+      .tiny { font-size: 17px; fill: #64798a; }
+      .card { fill: #fff; stroke: #cfdae4; stroke-width: 2; filter: url(#shadow); }
+      .pipe { fill: none; stroke: url(#water); stroke-width: 18; stroke-linecap: round; stroke-linejoin: round; }
+      .pipe-thin { fill: none; stroke: #0f766e; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+      .spray { fill: none; stroke: #2563eb; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+      .suction { fill: none; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14 10; }
+      .node { fill: #fff; stroke: #0f766e; stroke-width: 7; }
+      .gauge { fill: #fff; stroke: #27485f; stroke-width: 5; }
+      .chip { fill: #e8f5f1; stroke: #88bcae; stroke-width: 2; }
+      .warn { fill: #fff8e7; stroke: #f2b84b; stroke-width: 2; }
+      .bad { fill: #fff1f1; stroke: #ef7777; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect width="2000" height="1200" fill="url(#bg)"/>
+
+  <text x="70" y="70" class="title">4分文丘里 + 减压阀压差旁路候选图例</text>
+  <text x="72" y="110" class="subtitle">概念连接图｜采用后将改变现有 A/B 互斥逻辑｜P1、P2、驱动流量与吸液量仍须清水实测</text>
+
+  <g transform="translate(1550 48)">
+    <rect width="130" height="44" rx="22" class="chip"/>
+    <circle cx="25" cy="22" r="7" fill="#0f766e"/>
+    <text x="44" y="29" class="small">供水</text>
+    <rect x="145" width="130" height="44" rx="22" fill="#eef4ff" stroke="#9bbcf4" stroke-width="2"/>
+    <circle cx="170" cy="22" r="7" fill="#2563eb"/>
+    <text x="189" y="29" class="small">喷淋</text>
+    <rect x="290" width="130" height="44" rx="22" fill="#fff2e8" stroke="#f1ac7b" stroke-width="2"/>
+    <circle cx="315" cy="22" r="7" fill="#ea580c"/>
+    <text x="334" y="29" class="small">注入</text>
+  </g>
+
+  <!-- Main hydraulic card -->
+  <rect x="55" y="145" width="1890" height="415" rx="30" class="card"/>
+  <text x="90" y="195" class="section">01｜水源与压差旁路</text>
+
+  <!-- Faucet and inlet protection -->
+  <g transform="translate(105 270)">
+    <path d="M0 28 h45 v-25 h36 v25 h35" fill="none" stroke="#527084" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M81 3 v-25 M63 -22 h36" fill="none" stroke="#527084" stroke-width="10" stroke-linecap="round"/>
+    <path d="M116 28 q24 0 24 24 v12" fill="none" stroke="#527084" stroke-width="14" stroke-linecap="round"/>
+    <path d="M140 77 q-12 18 -24 0 q12 -24 24 0" fill="#53a8e2"/>
+    <text x="70" y="126" text-anchor="middle" class="label">4分水龙头</text>
+    <text x="70" y="154" text-anchor="middle" class="tiny">G1/2 候选接口</text>
+  </g>
+
+  <path d="M245 312 H292" class="pipe" marker-end="url(#arrowGreen)"/>
+
+  <g transform="translate(305 262)">
+    <rect width="112" height="100" rx="18" fill="#f3f7fa" stroke="#607c91" stroke-width="4"/>
+    <path d="M20 25 h72 M25 50 h62 M32 75 h48" stroke="#607c91" stroke-width="5" stroke-linecap="round"/>
+    <text x="56" y="132" text-anchor="middle" class="label">倒流防护＋过滤</text>
+  </g>
+
+  <path d="M417 312 H480" class="pipe"/>
+
+  <!-- P1 node and gauge -->
+  <circle cx="490" cy="312" r="14" class="node"/>
+  <path d="M490 296 V252" class="pipe-thin"/>
+  <circle cx="490" cy="225" r="31" class="gauge"/>
+  <path d="M490 225 l13 -13" stroke="#e34f4f" stroke-width="5" stroke-linecap="round"/>
+  <text x="490" y="231" text-anchor="middle" class="tiny">P1</text>
+  <text x="490" y="183" text-anchor="middle" class="small">文丘里入口动态压力</text>
+
+  <!-- Main PRV route -->
+  <path d="M504 312 H580" class="pipe" marker-end="url(#arrowGreen)"/>
+  <g transform="translate(595 258)">
+    <rect width="180" height="108" rx="24" fill="#fff7dd" stroke="#d89b18" stroke-width="5"/>
+    <path d="M34 54 h24 l15 -22 l22 44 l20 -44 l17 22 h18" fill="none" stroke="#b97806" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="150" cy="54" r="13" fill="#d89b18"/>
+    <text x="90" y="-15" text-anchor="middle" class="label">减压阀主路</text>
+    <text x="90" y="140" text-anchor="middle" class="tiny">提供稳定的上下游压差</text>
+  </g>
+  <path d="M775 312 H848" class="pipe" marker-end="url(#arrowGreen)"/>
+
+  <!-- Venturi bypass -->
+  <path d="M490 326 V445 H545" class="pipe"/>
+  <g transform="translate(552 412)">
+    <circle cx="32" cy="33" r="29" fill="#fff" stroke="#ea580c" stroke-width="6"/>
+    <path d="M17 17 l30 30 M47 17 l-30 30" stroke="#ea580c" stroke-width="7" stroke-linecap="round"/>
+    <text x="32" y="90" text-anchor="middle" class="tiny">旁路启用阀</text>
+  </g>
+  <path d="M613 445 H650" fill="none" stroke="#ea580c" stroke-width="16" stroke-linecap="round" marker-end="url(#arrowOrange)"/>
+
+  <g transform="translate(665 395)">
+    <path d="M0 25 h42 l40 28 l40 -28 h43 v100 h-43 l-40 -28 l-40 28 h-42 z" fill="url(#venturi)" stroke="#9a3412" stroke-width="5"/>
+    <circle cx="82" cy="125" r="11" fill="#9a3412"/>
+    <path d="M82 136 v38" stroke="#9a3412" stroke-width="10" stroke-linecap="round"/>
+    <text x="82" y="84" text-anchor="middle" class="label" style="fill:#fff">4分文丘里</text>
+    <text x="82" y="184" text-anchor="middle" class="tiny">侧吸口</text>
+  </g>
+
+  <path d="M830 445 H858" fill="none" stroke="#ea580c" stroke-width="16" stroke-linecap="round"/>
+  <g transform="translate(865 417)">
+    <path d="M0 28 l28 -22 l28 22 l-28 22 z" fill="#fff" stroke="#ea580c" stroke-width="5"/>
+    <path d="M16 28 h24" stroke="#ea580c" stroke-width="5"/>
+    <text x="28" y="84" text-anchor="middle" class="tiny">止回阀</text>
+  </g>
+  <path d="M921 445 H940 V326" fill="none" stroke="#ea580c" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowOrange)"/>
+
+  <!-- P2 node -->
+  <path d="M848 312 H940" class="pipe"/>
+  <circle cx="940" cy="312" r="14" class="node"/>
+  <path d="M940 296 V252" class="pipe-thin"/>
+  <circle cx="940" cy="225" r="31" class="gauge"/>
+  <path d="M940 225 l-10 -15" stroke="#e34f4f" stroke-width="5" stroke-linecap="round"/>
+  <text x="940" y="231" text-anchor="middle" class="tiny">P2</text>
+  <text x="940" y="183" text-anchor="middle" class="small">文丘里出口动态压力</text>
+
+  <!-- Pressure relationship -->
+  <g transform="translate(1450 380)">
+    <rect width="430" height="124" rx="18" class="warn"/>
+    <text x="24" y="35" class="label">同时满足才可启用</text>
+    <text x="24" y="69" class="small">① P1、P2 与驱动流量落在厂家曲线内</text>
+    <text x="24" y="101" class="small">② P2 减去末端压损后仍满足灌溉压力</text>
+  </g>
+
+  <!-- End selector -->
+  <path d="M954 312 H1060" class="pipe" marker-end="url(#arrowGreen)"/>
+  <g transform="translate(1080 252)">
+    <circle cx="60" cy="60" r="55" fill="#f5faf8" stroke="#0f766e" stroke-width="7"/>
+    <circle cx="60" cy="60" r="17" fill="#0f766e"/>
+    <path d="M5 60 H43 M77 44 L108 18 M77 76 L108 103" stroke="#0f766e" stroke-width="12" stroke-linecap="round"/>
+    <text x="60" y="-18" text-anchor="middle" class="label">末端三通选择阀</text>
+    <text x="60" y="145" text-anchor="middle" class="tiny">滴灌／关闭／喷淋</text>
+  </g>
+
+  <!-- Spray branch -->
+  <path d="M1188 270 L1265 205 H1330" class="spray" marker-end="url(#arrowBlue)"/>
+  <g transform="translate(1345 165)">
+    <rect width="105" height="80" rx="18" fill="#eef5ff" stroke="#2563eb" stroke-width="5"/>
+    <path d="M18 20 h69 M24 40 h57 M31 60 h43" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/>
+    <text x="53" y="-16" text-anchor="middle" class="small">喷淋过滤</text>
+  </g>
+  <path d="M1450 205 H1490" class="spray"/>
+  <g transform="translate(1500 165)">
+    <rect width="120" height="80" rx="20" fill="#eef5ff" stroke="#2563eb" stroke-width="5"/>
+    <path d="M25 40 h70 M60 15 v50" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="60" cy="40" r="15" fill="#fff" stroke="#2563eb" stroke-width="5"/>
+    <text x="60" y="-16" text-anchor="middle" class="small">喷淋调压</text>
+  </g>
+  <path d="M1620 205 H1900" class="spray" marker-end="url(#arrowBlue)"/>
+  <g fill="#2563eb">
+    <circle cx="1680" cy="205" r="10"/><circle cx="1760" cy="205" r="10"/><circle cx="1840" cy="205" r="10"/>
+  </g>
+  <g stroke="#2563eb" stroke-width="7" stroke-linecap="round">
+    <path d="M1680 215 v42 M1760 215 v42 M1840 215 v42"/>
+  </g>
+  <g fill="#5ab2ef">
+    <path d="M1660 275 q20 -30 40 0 q-20 17 -40 0"/>
+    <path d="M1740 275 q20 -30 40 0 q-20 17 -40 0"/>
+    <path d="M1820 275 q20 -30 40 0 q-20 17 -40 0"/>
+  </g>
+  <text x="1745" y="319" text-anchor="middle" class="small">9/12 喷淋支路｜单端进水、末端封闭</text>
+
+  <!-- Liquid source card -->
+  <rect x="55" y="600" width="700" height="485" rx="30" class="card"/>
+  <text x="90" y="652" class="section">02｜肥料／农药液源选择</text>
+
+  <g transform="translate(315 700)">
+    <circle cx="55" cy="55" r="51" fill="#f7f2ff" stroke="#7c3aed" stroke-width="7"/>
+    <circle cx="55" cy="55" r="15" fill="#7c3aed"/>
+    <path d="M55 4 V38 M12 82 L40 65 M98 82 L70 65" stroke="#7c3aed" stroke-width="11" stroke-linecap="round"/>
+    <text x="205" y="54" text-anchor="middle" class="label">一只三通液源阀</text>
+    <text x="205" y="84" text-anchor="middle" class="tiny">肥料／关闭／农药</text>
+  </g>
+
+  <path d="M370 700 V590 L747 590 V570" class="suction" stroke="#7c3aed"/>
+  <path d="M370 590 H747" fill="none" stroke="#7c3aed" stroke-width="8" stroke-dasharray="14 10" marker-end="url(#arrowPurple)"/>
+
+  <g transform="translate(120 865)">
+    <path d="M0 35 h170 l-17 150 h-136 z" fill="#fff8e8" stroke="#d9a43a" stroke-width="5"/>
+    <path d="M20 80 h130" stroke="#edbd55" stroke-width="5"/>
+    <text x="85" y="122" text-anchor="middle" class="label">肥料清水试桶</text>
+    <text x="85" y="218" text-anchor="middle" class="tiny">过滤头＋止回阀</text>
+  </g>
+  <path d="M205 865 V850 H300 V782 H327" class="suction" stroke="#d9a43a"/>
+  <path d="M286 850 l18 -14 l18 14 l-18 14 z" fill="#fff" stroke="#d9a43a" stroke-width="4"/>
+
+  <g transform="translate(485 865)">
+    <path d="M0 35 h170 l-17 150 h-136 z" fill="#fff0ee" stroke="#db684f" stroke-width="5"/>
+    <path d="M20 80 h130" stroke="#e68470" stroke-width="5"/>
+    <text x="85" y="122" text-anchor="middle" class="label">农药清水试桶</text>
+    <text x="85" y="218" text-anchor="middle" class="tiny">过滤头＋止回阀</text>
+  </g>
+  <path d="M570 865 V850 H440 V782 H413" class="suction" stroke="#db684f"/>
+  <path d="M455 850 l18 -14 l18 14 l-18 14 z" fill="#fff" stroke="#db684f" stroke-width="4"/>
+
+  <!-- Drip card -->
+  <rect x="790" y="600" width="1155" height="485" rx="30" class="card"/>
+  <text x="870" y="652" class="section">03｜9/12 快插主管＋毛细滴箭支路</text>
+  <text x="1888" y="652" text-anchor="end" class="tiny">两套同构支路；外径快插与内径倒刺分开标注</text>
+
+  <path d="M1140 367 V575 H835 V710" class="pipe"/>
+  <path d="M835 710 H1895" fill="none" stroke="#0f766e" stroke-width="18" stroke-linecap="round" marker-end="url(#arrowGreen)"/>
+  <text x="920" y="687" text-anchor="middle" class="small">9/12 主管（ID 9 / OD 12）</text>
+  <rect x="1886" y="691" width="28" height="38" rx="8" fill="#143f3a"/>
+
+  <!-- P4 -->
+  <path d="M930 719 V745" class="pipe-thin"/>
+  <circle cx="930" cy="770" r="24" class="gauge"/>
+  <text x="930" y="777" text-anchor="middle" class="tiny">P4</text>
+
+  <!-- Interface boundary note -->
+  <g transform="translate(825 810)">
+    <rect width="385" height="220" rx="18" fill="#f8fafc" stroke="#b6c6d3" stroke-width="2"/>
+    <text x="22" y="36" class="label">接口边界</text>
+    <text x="22" y="72" class="small" style="fill:#b83b32">× PG8-4 双快插：小口只接 OD 4 mm 管</text>
+    <text x="22" y="108" class="small" style="fill:#087a5e">✓ 本图采用：8快插 → 4 mm 倒刺转换</text>
+    <text x="22" y="144" class="small">4/7 管：ID 4 / OD 7，套接 4 mm 倒刺</text>
+    <text x="22" y="180" class="small">3/5 管：ID 3 / OD 5，作为滴头后毛细管</text>
+    <text x="22" y="207" class="tiny">压力补偿滴头进出口倒刺仍须按所购型号确认</text>
+  </g>
+
+  <!-- Branch 1: 12-to-8 tee, 8 mm tube, barb adapter, 4/7 tube, PC dripper, 3/5 tube, stake -->
+  <g transform="translate(1315 690)">
+    <rect x="-32" y="0" width="64" height="40" rx="9" fill="#143f3a"/>
+    <circle cx="0" cy="20" r="10" fill="#6fd0b3"/>
+    <path d="M0 40 V73" stroke="#169b78" stroke-width="12" stroke-linecap="round"/>
+    <path d="M-24 73 h48 v30 h-48 z" fill="#dceff0" stroke="#0f766e" stroke-width="4"/>
+    <path d="M-13 103 h26 l10 14 l-10 14 h-26 l-10 -14 z" fill="#182f3a" stroke="#0f766e" stroke-width="4"/>
+    <path d="M0 131 V168" stroke="#d39a2d" stroke-width="9" stroke-linecap="round"/>
+    <rect x="-23" y="168" width="46" height="31" rx="14" fill="#2d5d77" stroke="#163b51" stroke-width="4"/>
+    <circle cx="0" cy="184" r="7" fill="#8dd5f2"/>
+    <path d="M0 199 V239" stroke="#7256b8" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-15 239 H15 L0 263 z" fill="#293947"/>
+    <path d="M0 263 V280" stroke="#293947" stroke-width="5" stroke-linecap="round"/>
+    <text x="50" y="50" class="tiny">12→8 变径快插三通</text>
+    <text x="50" y="88" class="tiny">8 mm OD 短管</text>
+    <text x="50" y="123" class="tiny">8快插→4 mm倒刺</text>
+    <text x="50" y="160" class="tiny">4/7 支路（ID4 / OD7）</text>
+    <text x="50" y="192" class="tiny">压力补偿滴头</text>
+    <text x="50" y="229" class="tiny">3/5 毛细管（ID3 / OD5）</text>
+    <text x="50" y="260" class="tiny">滴箭</text>
+  </g>
+
+  <!-- Branch 2 -->
+  <g transform="translate(1735 690)">
+    <rect x="-32" y="0" width="64" height="40" rx="9" fill="#143f3a"/>
+    <circle cx="0" cy="20" r="10" fill="#6fd0b3"/>
+    <path d="M0 40 V73" stroke="#169b78" stroke-width="12" stroke-linecap="round"/>
+    <path d="M-24 73 h48 v30 h-48 z" fill="#dceff0" stroke="#0f766e" stroke-width="4"/>
+    <path d="M-13 103 h26 l10 14 l-10 14 h-26 l-10 -14 z" fill="#182f3a" stroke="#0f766e" stroke-width="4"/>
+    <path d="M0 131 V168" stroke="#d39a2d" stroke-width="9" stroke-linecap="round"/>
+    <rect x="-23" y="168" width="46" height="31" rx="14" fill="#2d5d77" stroke="#163b51" stroke-width="4"/>
+    <circle cx="0" cy="184" r="7" fill="#8dd5f2"/>
+    <path d="M0 199 V239" stroke="#7256b8" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-15 239 H15 L0 263 z" fill="#293947"/>
+    <path d="M0 263 V280" stroke="#293947" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Pot 1 -->
+  <g transform="translate(1240 945)">
+    <ellipse cx="75" cy="18" rx="72" ry="19" fill="#547e55"/>
+    <path d="M10 18 h130 l-18 92 h-94 z" fill="#d8e0e6" stroke="#7e929f" stroke-width="4"/>
+    <ellipse cx="75" cy="18" rx="66" ry="15" fill="#5b412d"/>
+    <g fill="#e885a1">
+      <circle cx="48" cy="2" r="13"/><circle cx="75" cy="-5" r="13"/><circle cx="102" cy="2" r="13"/>
+    </g>
+    <text x="75" y="138" text-anchor="middle" class="tiny">独立滴箭支路 1</text>
+  </g>
+
+  <!-- Pot 2 -->
+  <g transform="translate(1660 945)">
+    <ellipse cx="75" cy="18" rx="72" ry="19" fill="#547e55"/>
+    <path d="M10 18 h130 l-18 92 h-94 z" fill="#d8e0e6" stroke="#7e929f" stroke-width="4"/>
+    <ellipse cx="75" cy="18" rx="66" ry="15" fill="#5b412d"/>
+    <g fill="#ef7f32">
+      <circle cx="48" cy="2" r="13"/><circle cx="75" cy="-5" r="13"/><circle cx="102" cy="2" r="13"/>
+    </g>
+    <text x="75" y="138" text-anchor="middle" class="tiny">独立滴箭支路 2</text>
+  </g>
+
+  <!-- Footer boundary -->
+  <g transform="translate(70 1110)">
+    <rect width="1860" height="58" rx="18" class="bad"/>
+    <text x="30" y="37" class="small">边界：两盆低流量仍可能低于4分文丘里的最小驱动流量；本候选图不替代正式拓扑、厂家曲线、动态测压、流量实测和倒流防护验收。</text>
+  </g>
+</svg>
