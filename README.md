@@ -1,34 +1,25 @@
-# V4 双液源水肥药一体化系统
+# 水肥工程计算器 · V5 双液源系统
 
-本仓库保存“单一水源、A/B 双路控制、肥料/农药双液源、滴灌/上空喷灌双末端互斥运行”的工程设计说明。
+本项目以独立工程计算器为主要入口，用于单灌区的水力、压力预算、肥液与文丘里、喷灌与喷药、冲洗和滴头均匀度计算。参考文档提供设计、安装、数据来源与维护说明。
 
-设计基准水路为：
-
-```text
-水源 → 倒流防止器 → 过滤器 → 双路控制器
-                           ├─ A → CV-A ──────────────┐
-                           └─ B → 文丘里 → CV-B ─────┤
-                                                    └→ 合流 → MV-END（三通选择阀）
-肥料桶 → 过滤头 → 调节阀 → CV-F ┐                            ├→ 滴灌减压 → 滴头
-                                 ├→ MV-SOURCE → 文丘里侧吸口
-农药桶 → 过滤头 → 调节阀 → CV-P ┘                            └→ 喷灌过滤/调压 → 上空喷头
-```
-
-手机控制器仍只负责 A/B；当前样机用两只带中位全关的三通手动选择阀：`MV-END` 在滴灌/关闭/喷灌之间选择，`MV-SOURCE` 在肥料/关闭/农药之间选择。水力与防串液验收通过后，第二阶段再确定电动三通执行方案。施肥与喷药都可使用 `A → B → A`，但必须按两个不同流量工况分别验算文丘里。
+当前 V5 设计采用 A/B 互斥控制；B 路在 T1/T2 之间由减压主路与文丘里旁路并联组成。普通 L 型末端三通在滴灌与喷淋之间二选一，停止依靠 A/B 均关。设计与工况依据见参考文档中的当前设计数据。
 
 ## 快速入口
 
 | 要做的事 | 入口 |
 |---|---|
-| 从整体了解系统 | [文档首页](docs/index.md) |
-| 查看水路、测点和流向 | [v4 工程拓扑图](docs/assets/generated/fertigation-system-topology-v4.svg) · [读图说明](docs/architecture/diagram-walkthrough.md) |
+| 开始输入计算 | [独立工程计算器](docs/tools/calculator/index.html) · 网站根地址即计算器 |
+| 从整体了解系统 | [参考文档](docs/guide/index.md) |
+| 查看水路、测点和流向 | [v5 工程拓扑图](docs/assets/generated/fertigation-system-topology-v5.svg) · [读图说明](docs/architecture/diagram-walkthrough.md) |
 | 核对部件、牙型和管径 | [部件选型](docs/design/component-sizing.md) · [接口规格清单](docs/reference/interface-schedule.md) |
-| 进行滴灌/喷灌压力、吸液和冲洗计算 | [计算规则](docs/design/hydraulic-calculation.md) · [网页工程计算器](docs/calculations/engineering-calculator.md) |
+| 进行滴灌/喷灌压力、吸液和冲洗计算 | [计算规则](docs/design/hydraulic-calculation.md) · [计算器使用说明](docs/calculations/engineering-calculator.md) |
 | 安装、调试和运行 | [安装与清水调试](docs/operations/installation-commissioning.md) · [A → B → A 程序](docs/operations/controller-program.md) · [故障诊断](docs/operations/troubleshooting.md) |
 | 核对标准和厂家资料 | [资料来源](docs/reference/sources.md) |
 | 维护程序与生成文件 | [程序路径与生成流程](docs/reference/program-structure.md) |
 
-网页工程计算器中的交互功能需要通过下方的 MkDocs 本地文档站运行；直接在 GitHub 中打开 Markdown 只能阅读页面源码。
+通过下方命令启动后，根地址直接打开计算器；参考文档位于 `/guide/`。`/tools/calculator/` 提供同一计算器的独立入口。需通过 HTTP 运行以便读取当前设计工况；GitHub 只展示源文件。
+
+工具与参考文档共用顶部横栏：品牌、主导航、当前页标识和文档搜索保持一致。搜索会打开参考文档的原生搜索结果；手机第二行提供导航，文档页另有目录按钮。横栏源文件为 `src/fertigation_pipeline/web/header.html`，样式为 `shared-shell.css`；同步时同时生成独立工具、首页模板和文档 header partial。
 
 ## 直接下载
 
@@ -47,11 +38,13 @@
 | `config/fertigation/presentation/diagram-layout.json` | 是 | 工程图坐标、颜色和字号 |
 | `config/fertigation/content/sources/*.data.json` | 否 | Excel 同步生成的设计事实和工况 JSON |
 | `docs/_generated/`、`docs/assets/generated/` | 否 | 自动生成的表格、SVG 和 PNG |
+| `src/fertigation_pipeline/web/index.html`、`workbench.css`、`calculator.js` | 是 | 唯一工具结构、样式与交互源 |
+| `docs/tools/calculator/`、`overrides/workbench.html`、`docs/stylesheets/generated/` | 否 | 同源生成的独立工具、首页模板与样式 |
 | `docs/downloads/`、`docs/javascripts/generated/` | 否 | 网站发布用工作簿和浏览器文件 |
 
 修改人工维护文件后运行 `npm.cmd run data:sync`，统一刷新 JSON、工作簿公式、工程图、接口表、网页工况和下载副本。
 
-## 本地文档站
+## 启动计算器与参考文档
 
 首次使用，在 Windows PowerShell 中执行：
 
@@ -67,7 +60,7 @@ npm.cmd ci
 npm.cmd run docs:serve
 ```
 
-脚本会先执行数据同步，再以严格模式启动 MkDocs。访问：
+脚本会先执行数据同步，再以严格模式启动 MkDocs。打开以下地址即可输入计算：
 
 ```text
 http://127.0.0.1:8001/

@@ -1,0 +1,47 @@
+/* Shared header for both the calculator and Material reference pages. */
+:root { --site-font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif; }
+.site-header { --shell-blue: #0b4ea2; position: sticky; top: 0; z-index: 4; width: 100%; background: #fff; color: #24394d; border: 0; box-shadow: inset 0 -1px #e3e9ef; font-family: var(--site-font); font-size: 14px; line-height: 1.5; }
+.site-header *, .site-header *::before, .site-header *::after { box-sizing: border-box; }
+.site-header__inner { display: grid; grid-template-columns: 200px minmax(0, 1fr) 240px; align-items: center; gap: 24px; width: 100%; max-width: 1440px; height: 64px; margin: 0 auto; padding: 0 28px; }
+.site-header a { text-decoration: none; }
+.site-header .site-brand { display: inline-flex; align-items: center; justify-self: start; gap: 12px; color: #173c61; font-size: 18px; line-height: 24px; font-weight: 700; white-space: nowrap; }
+.site-brand__mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 5px; background: var(--shell-blue); color: #fff; font-size: 22px; line-height: 30px; font-weight: 650; }
+.site-nav { display: flex; align-items: stretch; justify-content: center; height: 64px; gap: 28px; white-space: nowrap; }
+.site-nav a { display: flex; align-items: center; position: relative; color: #627180; font-size: 14px; line-height: 20px; font-weight: 500; }
+.site-nav a:hover { color: var(--shell-blue); }
+.site-nav a[aria-current="page"] { color: var(--shell-blue); font-weight: 650; }
+.site-nav a[aria-current="page"]::after { position: absolute; bottom: 0; right: 0; left: 0; height: 2px; content: ""; background: var(--shell-blue); }
+.site-search { display: flex; justify-self: end; align-items: center; width: 240px; height: 36px; margin: 0; border: 1px solid #dfe6ed; border-radius: 5px; background: #f8fafc; }
+.site-search:focus-within { border-color: #79a8dc; box-shadow: 0 0 0 2px #e9f1fc; }
+.site-header .site-search input { appearance: none; min-width: 0; width: 100%; height: 34px; margin: 0; padding: 7px 10px; border: 0; outline: 0; background: transparent; color: #253b50; font: 14px/20px var(--site-font); }
+.site-search input::placeholder { color: #788896; opacity: 1; }
+.site-header .site-search button { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #617c95; cursor: pointer; }
+.site-search button:hover { background: #eaf1f9; color: var(--shell-blue); }
+.site-search svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.site-header a:focus-visible, .site-header button:focus-visible { outline: 3px solid #82b2ee; outline-offset: 3px; }
+.site-header .md-search { position: absolute; right: max(28px, calc((100vw - 1384px) / 2)); top: 0; padding: 0; visibility: hidden; }
+[data-md-toggle="search"]:checked ~ .site-header .md-search { visibility: visible; }
+.site-header .md-search__inner { top: 10px; }
+.site-header .md-search__input { font-size: 16px; }
+.site-header .md-search__overlay { position: fixed; inset: 0; }
+.site-header .md-search-result__meta { font-size: 13px; }
+.site-header .md-search-result { font-family: var(--site-font); }
+.site-menu-slot { display: none; }
+@media (max-width: 1219px) {
+  .site-header__inner { grid-template-columns: 175px minmax(0,1fr) 190px; padding: 0 20px; gap: 12px; }
+  .site-search { width: 190px; }
+  .site-nav { gap: 18px; }
+  .site-menu-slot { display: grid; place-items: center; flex: 0 0 28px; width: 28px; }
+  .site-menu-slot button { display: grid; place-items: center; width: 28px; height: 30px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #345977; cursor: pointer; }
+  .site-menu-slot svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.7; fill: none; }
+}
+@media (max-width: 760px) {
+  .site-header__inner { grid-template-columns: minmax(0, 1fr) minmax(130px, 180px); gap: 0 16px; height: 100px; padding: 0 16px; }
+  .site-header .site-brand { grid-column: 1; grid-row: 1; font-size: 16px; gap: 9px; height: 56px; }
+  .site-search { grid-column: 2; grid-row: 1; width: min(100%, 220px); }
+  .site-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; height: 44px; gap: 22px; overflow-x: auto; scrollbar-width: none; }
+  .site-nav a { font-size: 13px; }
+  .site-header .md-search { position: fixed; inset: 0; }
+  .site-header .md-search__inner { top: 0; width: 100%; }
+}
+@media print { .site-header { display: none; } }

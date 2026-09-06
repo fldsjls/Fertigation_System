@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import crypto from "node:crypto";
 
 const require = createRequire(import.meta.url);
+const { webArtifacts } = require("../src/fertigation_pipeline/web/publish.js");
 const {
   loadInterfaceWorkbook,
 } = require("../src/fertigation_pipeline/data/interface-workbook.js");
@@ -144,6 +145,9 @@ async function verify() {
     ["src/fertigation_pipeline/calculation/core.js", "docs/javascripts/generated/fertigation-calculator-core.js"],
     ["src/fertigation_pipeline/web/calculator.js", "docs/javascripts/generated/fertigation-calculator.js"],
   ];
+  for (const [relative, content] of await webArtifacts(root)) {
+    await assertEqualFile(relative, content);
+  }
   const header =
     "// GENERATED FILE — edit the source under src/fertigation_pipeline instead.\n";
   for (const [source, published] of publishedScripts) {
@@ -170,7 +174,7 @@ async function verify() {
   }
 
   process.stdout.write(
-    `GENERATED_OK revision=${systemData.metadata.design_revision} files=12\n`
+    `GENERATED_OK revision=${systemData.metadata.design_revision} web_entries=2\n`
   );
 }
 

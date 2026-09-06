@@ -48,7 +48,8 @@ try {
         }
     }
 
-    Write-Host "Documentation site: http://$Address/"
+    Write-Host "Engineering calculator: http://$Address/"
+    Write-Host "Reference documentation: http://$Address/guide/"
     Write-Host "Press Ctrl+C to stop."
     & $python -m mkdocs serve --strict -a $Address
     if ($LASTEXITCODE -ne 0) {

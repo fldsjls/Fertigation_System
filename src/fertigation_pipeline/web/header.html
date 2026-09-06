@@ -1,0 +1,15 @@
+<header class="site-header @@MD_CLASS@@" @@COMPONENT@@>
+  <div class="site-header__inner">
+    <a class="site-brand" href="@@ROOT@@" aria-label="水肥工程首页"><span class="site-brand__mark" aria-hidden="true">F</span><span>水肥工程</span></a>
+    <nav class="site-nav" aria-label="主导航">
+      <span class="site-menu-slot">@@MENU@@</span>
+      <a href="@@ROOT@@" @@TOOL_ACTIVE@@>工程计算器</a>
+      <a href="@@ROOT@@guide/" @@DOCS_ACTIVE@@>参考文档</a>
+    </nav>
+    <form class="site-search" role="search" aria-label="搜索文档" action="@@ROOT@@guide/" method="get">
+      <input type="search" name="q" aria-label="搜索文档" placeholder="搜索文档" autocomplete="off" maxlength="100" required>
+      <button type="submit" aria-label="搜索"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></button>
+    </form>
+  </div>
+  @@NATIVE_SEARCH@@
+</header>

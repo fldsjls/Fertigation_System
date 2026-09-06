@@ -82,7 +82,21 @@ Fertigation_System/
 
 - `src/fertigation_pipeline/web/calculator.js`：网页工程计算器的表单、案例导入、结果展示和本地保存逻辑。
 - 发布副本位于 `docs/javascripts/generated/fertigation-calculator.js`，必须通过同步脚本刷新。
-- 页面结构位于 `docs/calculations/engineering-calculator.md`。
+- 唯一工具页面结构位于 `src/fertigation_pipeline/web/index.html`，样式位于同目录 `workbench.css`。
+- `web/publish.js` 供同步与检查共用：生成 `docs/tools/calculator/index.html`、`overrides/workbench.html` 和 `docs/stylesheets/generated/workbench.css`，不要手动编辑这些副本。首页模板把独立工具的两级相对资源路径转换为根目录相对路径，可部署到子路径。
+- `docs/index.md` 仅选择工具首页模板；原设计文档首页位于 `docs/guide/index.md`，使用说明位于 `docs/calculations/engineering-calculator.md`。
+- 六个计算项目共用一个表单，项目切换不改变输入；沿用既有本机存储键与工况 JSON 迁移规则。
+
+工作区采用单层 `workbench.css` 规则；中文字体通过公共 `--site-font` 统一。表单标签 14 px、输入 16 px、必要辅助说明 13 px，状态标记 12 px。结果表保留完整单位和数值，窄容器仅在表格内部横向滚动。重复栏目提示不另占一行，计算失败原因和安全限定始终保留。
+
+### 公共顶部横栏
+
+- `src/fertigation_pipeline/web/header.html` 是计算器和参考文档共用的结构源，通过占位符生成路径与当前导航状态。
+- `shared-shell.css` 同时加载于两个页面体系，统一桌面 64 px、手机 100 px 两行横栏，主色仍为蓝色。
+- 文档适配副本为 `overrides/partials/header.html`；搜索保留 Material 原生弹层、索引和结果渲染。
+- `docs/stylesheets/navigation.css` 人工维护文档侧栏的桌面对齐：标题、分组和同级链接共用左边线，两侧栏与正文标题顶端对齐；实际下级目录保留缩进，移动端沿用主题原生抽屉。
+- `docs-shell.js` 将公共表单与 `guide/?q=关键词` 转交原生搜索输入，不另建搜索引擎；手机目录按钮操作 Material 抽屉。
+- 所有横栏副本由 `web/publish.js` 生成并纳入 `data:check`，不手动维护多个横栏。
 
 ## 数据生成链路
 
@@ -113,7 +127,7 @@ data/fertigation/input/*.xlsx ──→ docs/downloads/*.xlsx
 3. 更新计算工作簿并生成当前工况 JSON。
 4. 生成测点表、接口清单、采购清单、设计摘要和 v5 工程拓扑。
 5. 复制网站下载用工作簿。
-6. 发布计算核心与网页计算器的浏览器副本。
+6. 发布计算核心、网页脚本、同源工具页面、首页模板与样式；`data:check` 同时核对这些副本。
 
 ## 脚本和命令
 
@@ -136,3 +150,11 @@ data/fertigation/input/*.xlsx ──→ docs/downloads/*.xlsx
 5. 不直接修改 `config/fertigation/content/sources/`、`docs/_generated/`、`docs/assets/generated/`、`docs/downloads/` 或 `docs/javascripts/generated/` 中的生成文件。
 6. 完成修改后依次运行 `npm.cmd run data:sync` 和 `npm.cmd run docs:build`。
 
+
+### 导航入口分工
+
+顶部横栏只提供工程计算器与参考文档两个主入口；操作帮助位于计算器标题旁，在新窗口打开以保留当前输入。帮助页归属计算器，不显示文档专题侧栏；参考文档侧栏仅列知识专题。`overrides/partials/nav.html` 负责专题导航，`not_in_nav` 标明仍需构建与搜索的全局页面，避免重复入口。
+
+### 操作反馈与布局稳定
+
+`docs/javascripts/feedback.js` 和 `docs/stylesheets/feedback.css` 人工维护工具反馈：操作成功使用固定浮层，错误使用对话框。自动保存使用固定宽度的简短状态，长错误不得撑开工具栏；持续的本机保存异常只提醒一次，恢复成功后才重置提醒。验证提示出现、关闭前后的工作区坐标及键盘焦点，计算结果和主动展开的内容仍按正常业务状态展示。

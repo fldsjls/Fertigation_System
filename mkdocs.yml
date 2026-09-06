@@ -1,4 +1,4 @@
-site_name: V5 双液源压差旁路水肥药系统文档
+site_name: 水肥工程 · V5 双液源系统
 site_description: A/B互斥、T1/T2压差旁路、五节点滴灌、五点喷淋、工程计算与清水调试
 docs_dir: docs
 site_dir: site
@@ -7,6 +7,7 @@ exclude_docs: |
 
 theme:
   name: material
+  custom_dir: overrides
   language: zh
   font: false
   features:
@@ -42,19 +43,22 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/navigation.css
+  - stylesheets/generated/shared-shell.css
 
 extra_javascript:
-  - javascripts/generated/fertigation-calculator-core.js
-  - javascripts/generated/fertigation-calculator.js
+  - javascripts/generated/docs-shell.js
 
+not_in_nav: |
+  /index.md
+  /guide/index.md
+  /calculations/engineering-calculator.md
 nav:
-  - 首页: index.md
   - 系统设计:
       - 工程图读图与测点: architecture/diagram-walkthrough.md
       - 系统原理: architecture/system-overview.md
       - 部件选型与数量计算: design/component-sizing.md
       - 滴灌/喷灌压力与吸液计算: design/hydraulic-calculation.md
-      - 工程计算工作表: calculations/engineering-calculator.md
   - 安装运行:
       - 安装与清水调试: operations/installation-commissioning.md
       - A/B 程序与手动阀位: operations/controller-program.md

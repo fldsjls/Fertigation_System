@@ -6,6 +6,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const require = createRequire(import.meta.url);
+const { webArtifacts } = require("../src/fertigation_pipeline/web/publish.js");
 const {
   loadInterfaceWorkbook,
 } = require("../src/fertigation_pipeline/data/interface-workbook.js");
@@ -171,6 +172,9 @@ async function synchronize() {
     "src/fertigation_pipeline/web/calculator.js",
     "fertigation-calculator.js"
   );
+  for (const [relative, content] of await webArtifacts(root)) {
+    await writeText(path.join(root, relative), content);
+  }
 
   for (const warning of systemData.validation.warnings) {
     process.stdout.write(`WARN ${warning}\n`);

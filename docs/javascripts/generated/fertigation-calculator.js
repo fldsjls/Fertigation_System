@@ -32,6 +32,49 @@
     const importInput = app.querySelector("[data-calc-import]");
     let saveTimer = null;
     let currentDesignRevision = "unknown";
+    const overview = app.querySelector(".calc-overview");
+    if (overview) {
+      const compactViewport = window.matchMedia("(max-width: 600px)");
+      function setOverviewLayout() { overview.open = !compactViewport.matches; }
+      setOverviewLayout();
+      compactViewport.addEventListener("change", setOverviewLayout);
+    }
+
+    // Sections stay in the same form: switching panels never changes input state.
+    const tabs = Array.from(app.querySelectorAll("[data-calc-tab]"));
+    const panels = Array.from(form.querySelectorAll(".calc-section"));
+    function selectPanel(id, focusTab) {
+      const selected = tabs.find(function (tab) { return tab.dataset.calcTab === id; }) || tabs[0];
+      if (!selected) return;
+      tabs.forEach(function (tab) {
+        const active = tab === selected;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+      });
+      panels.forEach(function (panel) { panel.hidden = panel.id !== selected.dataset.calcTab; });
+      if (focusTab) selected.focus();
+    }
+    if (tabs.length) {
+      app.querySelector(".calc-tabs").setAttribute("role", "tablist");
+      tabs.forEach(function (tab, index) {
+        tab.id = "tab-" + tab.dataset.calcTab;
+        tab.setAttribute("role", "tab");
+        tab.setAttribute("aria-controls", tab.dataset.calcTab);
+        const panel = document.getElementById(tab.dataset.calcTab);
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", tab.id);
+        tab.addEventListener("click", function () { selectPanel(tab.dataset.calcTab); });
+        tab.addEventListener("keydown", function (event) {
+          let next;
+          if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+          if (event.key === "ArrowLeft") next = (index + tabs.length - 1) % tabs.length;
+          if (event.key === "Home") next = 0;
+          if (event.key === "End") next = tabs.length - 1;
+          if (next !== undefined) { event.preventDefault(); selectPanel(tabs[next].dataset.calcTab, true); }
+        });
+      });
+      selectPanel("calc-system");
+    }
 
     function field(name) {
       return form.elements.namedItem(name);
@@ -189,7 +232,9 @@
         options && Object.prototype.hasOwnProperty.call(options, "text")
           ? options.text
           : displayValue(result);
-      reasonElement.textContent = reason || result.formula || "";
+      const explanation = reason || result.formula || "";
+      reasonElement.textContent = status === "calculated" && /^(总流量|末端总流量|管段水力结果)已计算$/.test(explanation) ? "" : explanation;
+      reasonElement.hidden = !reasonElement.textContent;
     }
 
     function writePipe(prefix, pipe, flowLph) {
@@ -1210,9 +1255,22 @@
       }
     }
 
+    let lastSaveWarning = "";
     function updateSaveStatus(message, isError) {
-      saveStatus.textContent = message;
+      const saving = /^(正在保存|已自动保存)/.test(message);
+      const restored = /^已.*恢复/.test(message);
+      const saveWarning = /本机保存不可用/.test(message);
+      saveStatus.textContent = isError ? "保存不可用" : saving ? message : restored ? "已恢复本机记录" : "记录已更新";
+      if (isError && !saveWarning) saveStatus.textContent = "操作未完成";
+      saveStatus.title = message;
       saveStatus.dataset.error = isError ? "true" : "false";
+      if (saveWarning) {
+        if (lastSaveWarning !== message) window.WorkbenchFeedback.show(message, "warning");
+        lastSaveWarning = message;
+      } else {
+        if (/^已自动保存/.test(message)) lastSaveWarning = "";
+        if (!saving && !restored) window.WorkbenchFeedback.show(message, isError ? "error" : "success");
+      }
     }
 
     function saveInputs() {
@@ -1354,6 +1412,7 @@
         setField(name, example[name]);
       });
       calculateAndRender();
+      selectPanel("calc-system");
       app.querySelector('[name="emitterCount"]').focus();
     }
 
@@ -1371,6 +1430,7 @@
       resetFormToDefaults();
       calculateAndRender();
       updateSaveStatus("已清空；默认清水参数已保留", false);
+      selectPanel("calc-system");
       app.querySelector('[name="emitterCount"]').focus();
     }
 

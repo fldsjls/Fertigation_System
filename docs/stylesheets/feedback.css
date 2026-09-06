@@ -1,0 +1,16 @@
+/* Feedback is outside document flow; opening it never shifts the work area. */
+.workbench-toast { box-sizing: border-box; position: fixed; z-index: 4000; inset: auto max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) auto; display: flex; align-items: start; gap: 14px; width: min(380px, calc(100vw - 40px)); max-height: min(320px, calc(100dvh - 140px)); overflow: auto; margin: 0; padding: 16px; border: 1px solid #cbded6; border-left: 4px solid #087d79; border-radius: 10px; background: #fff; color: #263d36; box-shadow: 0 8px 32px #173d3026; font: 14px/1.6 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; overflow-wrap: anywhere; }
+.workbench-toast[hidden] { display: none; }
+.workbench-toast [role="status"] { flex: 1; min-width: 0; }
+.workbench-toast[data-kind="success"] { border-left-color: #328457; }
+.workbench-toast[data-kind="warning"] { border-left-color: #b47c15; }
+.workbench-toast button { flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #52605c; cursor: pointer; font: 22px/1 sans-serif; }
+.workbench-feedback-dialog { box-sizing: border-box; width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; margin: auto; padding: 24px; border: 1px solid #d6dfe0; border-radius: 12px; background: #fff; color: #263437; box-shadow: 0 20px 70px #102c2833; font: 15px/1.7 "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; }
+.workbench-feedback-dialog::backdrop { background: #152b3b66; }
+.workbench-feedback-dialog h2 { margin: 0 0 12px; font-size: 20px; }
+.workbench-feedback-dialog p { margin: 0 0 24px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.workbench-feedback-dialog button { display: block; min-height: 40px; margin-left: auto; padding: 8px 20px; border: 0; border-radius: 6px; background: #087d79; color: #fff; cursor: pointer; font: inherit; }
+.workbench-feedback-dialog button:focus-visible, .workbench-toast button:focus-visible { outline: 2px solid #087d79; outline-offset: 3px; }
+.workbench .workbench-feedback-dialog button { background: #0b4ea2; }
+.workbench .workbench-toast { border-left-color: #0b4ea2; }
+@media print { .workbench-toast, .workbench-feedback-dialog { display: none !important; } }
